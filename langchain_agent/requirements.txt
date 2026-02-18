@@ -1,0 +1,32 @@
+langchain-core>=1.2.5,<2.0.0
+langchain-google-genai>=4.0.0,<5.0.0
+langgraph>=1.0.5,<2.0.0
+langgraph-checkpoint-postgres>=3.0.2,<4.0.0
+psycopg[binary]>=3.3.0
+psycopg-pool>=3.3.0
+opensearch-py>=2.4.0
+sqlalchemy>=2.0.0
+gitpython>=3.1.0
+
+# Web API dependencies
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+websockets>=14.0
+httpx>=0.28.0
+pydantic>=2.10.0
+
+# Security and rate limiting
+slowapi>=0.1.9
+python-dotenv>=1.0.0
+
+# Retry logic
+tenacity>=8.2.0
+
+# Structured logging
+structlog>=24.0.0
+
+# HTML parsing for improved javadoc extraction
+beautifulsoup4>=4.12.3
+
+# LangSmith observability (optional)
+langsmith>=0.1.0
