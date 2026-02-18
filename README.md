@@ -105,7 +105,7 @@ flowchart TB
 
 ### Agent Pipeline Flow
 
-```
+```text
 intent_classifier
   ├── question/follow_up → query_expansion → query_evaluator → retriever → alpha_refiner → agent
   ├── config_request     → config_resolver → config_generator → config_response
@@ -124,7 +124,7 @@ intent_classifier
 ### Content Type System
 
 | Type | Target Length | Temp | Retrieval Passes | Typical Time |
-|------|-------------|------|------------------|-------------|
+| ------ | ------------- | ------ | ------------------ | ------------- |
 | social_post | 200 words | 0.8 | 1 | ~6s |
 | blog_post | 1500 words | 0.7 | 2 | ~20s |
 | technical_article | 1200 words | 0.5 | 3 | ~25s |
@@ -138,7 +138,7 @@ before proceeding.
 ## Tech Stack
 
 | Category | Technology | Purpose |
-|----------|-----------|---------|
+| ---------- | ----------- | --------- |
 | **LLM** | gemini-2.5-flash | Primary reasoning and generation |
 | **Classifier** | gemini-2.5-flash-lite | Intent + content type classification |
 | **Embeddings** | gemini-embedding-001 | 768-dimensional semantic vectors |
@@ -155,17 +155,20 @@ before proceeding.
 ## Example Queries
 
 **RAG Q&A** (question intent):
-```
+
+```text
 What is a Lucille Connector and how does it work?
 ```
 
 **Config Builder** (config_request intent):
-```
+
+```text
 Build me a CSV to OpenSearch pipeline with a regex stage
 ```
 
 **Documentation Writer** (documentation_request intent):
-```
+
+```text
 Write a technical article about the FileConnector
 Write a LinkedIn post about Lucille's stage architecture
 Create comprehensive documentation for the OpenSearch indexer
@@ -173,12 +176,14 @@ Write a tutorial on building custom connectors
 ```
 
 **Summary** (summary intent):
-```
+
+```text
 Summarize our conversation so far
 ```
 
 **Follow-up** (follow_up intent):
-```
+
+```text
 How about combining them?   → auto-expands with conversation context
 ```
 
@@ -202,7 +207,7 @@ and expandable detail cards.
 ## Key Techniques
 
 | Technique | Description |
-|-----------|-------------|
+| ----------- | ------------- |
 | **Intent Classification** | 5-intent detection (95%+ accuracy) using keyword fast-path + LLM fallback |
 | **Content Type Classification** | 5 content types with code-based vagueness detection for missing format/topic |
 | **Config Builder** | Generates HOCON pipeline configurations from natural language with component spec matching |
@@ -217,7 +222,7 @@ and expandable detail cards.
 
 ## Directory Structure
 
-```
+```text
 rusty-compass/
 ├── README.md                     # This file
 ├── docker-compose.yml            # PostgreSQL + PGVector (local dev)
@@ -258,7 +263,7 @@ rusty-compass/
 The Query Evaluator dynamically sets alpha based on query type:
 
 | α Range | Strategy | Best For |
-|---------|----------|----------|
+| --------- | ---------- | ---------- |
 | 0.00-0.15 | Pure Lexical | Class names, identifiers, version numbers |
 | 0.15-0.40 | Lexical-Heavy | Specific APIs, configurations |
 | 0.40-0.60 | Balanced | Feature tutorials, patterns |
@@ -282,12 +287,14 @@ The `deploy.sh` script handles the full deployment:
 
 1. Enables required GCP APIs (Cloud Run, SQL, Artifact Registry, Secret Manager)
 2. Creates Cloud SQL PostgreSQL instance (checkpoints only)
-3. Stores secrets (GOOGLE_API_KEY, API_KEY, DB_PASSWORD, OpenSearch credentials) in Secret Manager
+3. Stores secrets (GOOGLE_API_KEY, API_KEY, DB_PASSWORD, OpenSearch credentials)
+   in Secret Manager
 4. Builds multi-stage Docker image (React frontend + Python backend)
 5. Pushes to Artifact Registry
 6. Deploys to Cloud Run with Cloud SQL proxy
 
 **Cost controls**:
+
 - `min-instances=0` (scales to zero when idle)
 - `max-instances=2` (prevents runaway scaling)
 - CPU throttling (CPU only during requests)
@@ -307,12 +314,18 @@ gcloud logging read resource.type=cloud_run_revision --project=<PROJECT_ID>
 ./scripts/gcp-teardown.sh --project <PROJECT_ID>
 ```
 
-**Note**: OpenSearch is hosted externally (GCP VM at 34.138.97.13:9200). Credentials are stored in Secret Manager as `rusty-compass-opensearch-user` and `rusty-compass-opensearch-password`.
+**Note**: OpenSearch is hosted externally (GCP VM at 34.138.97.13:9200). Credentials
+are stored in Secret Manager as `rusty-compass-opensearch-user` and
+`rusty-compass-opensearch-password`.
 
 ### Local Development
 
+Copy `.env.example` to `.env` and fill in your credentials before running
+setup:
+
 ```bash
 cd langchain_agent
+cp .env.example .env   # Then edit .env with your GOOGLE_API_KEY and API_KEY
 ./scripts/setup.sh    # Creates venv, starts PostgreSQL, ingests docs
 ./scripts/start.sh    # Starts backend (port 8000) + frontend (port 5173)
 ./scripts/stop.sh     # Stops all services
@@ -326,12 +339,17 @@ Google API Key ([get one here](https://aistudio.google.com/apikey))
 
 All citations are automatically validated before being sent to the LLM:
 
-- **Link Verification**: Each URL is checked for accessibility (200-299 status codes)
-- **Broken Link Replacement**: If a URL returns 404 or timeout, automatically replaced with a valid alternative
-- **Smart Caching**: Verification results cached for 60 minutes (TTL) to reduce API calls
-- **Javadoc Mapping**: Javadoc sources map to Maven Central (javadoc.io) instead of broken GitHub paths
+- **Link Verification**: Each URL is checked for accessibility
+  (200-299 status codes)
+- **Broken Link Replacement**: If a URL returns 404 or timeout, automatically
+  replaced with a valid alternative
+- **Smart Caching**: Verification results cached for 60 minutes (TTL)
+  to reduce API calls
+- **Javadoc Mapping**: Javadoc sources map to Maven Central (javadoc.io)
+  instead of broken GitHub paths
 
 **Javadoc URL Mapping**:
+
 - Local: Generated from Lucille javadoc (`target/site/apidocs/`)
 - Deployed: `https://javadoc.io/doc/com.kmwllc/lucille-core/latest/{class-path}.html`
 - Regular docs: GitHub URLs (`doc/site/content/en/docs/...`)
@@ -341,7 +359,7 @@ All citations are automatically validated before being sent to the LLM:
 ## Performance
 
 | Operation | Time |
-|-----------|------|
+| ----------- | ------ |
 | RAG Q&A (end-to-end, Cloud Run) | 10-30s |
 | Social post generation | ~6s |
 | Blog post generation | ~20s |
