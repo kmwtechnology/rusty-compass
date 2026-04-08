@@ -1,0 +1,4619 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-04-08T19:53:28.020425+00:00",
+  "source_root": "/Users/kevin/github/kmwtechnology/rusty-compass/lucille",
+  "component_count": 88,
+  "components": {
+    "CSVConnector": {
+      "class_name": "com.kmwllc.lucille.connector.CSVConnector",
+      "short_name": "CSVConnector",
+      "component_type": "connector",
+      "builder_type": "connector",
+      "description": "Deprecated connector that produces documents from a CSV file; use FileConnector with CSVFileHandler.",
+      "deprecated": true,
+      "parameters": [
+        {
+          "name": "path",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Path to the CSV file to read."
+        },
+        {
+          "name": "moveToAfterProcessing",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Destination directory to move the file after successful processing."
+        },
+        {
+          "name": "moveToErrorFolder",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Destination directory to move the file if processing fails."
+        },
+        {
+          "name": "lineNumberField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Document field to store the CSV row number."
+        },
+        {
+          "name": "filenameField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Document field to store the file name."
+        },
+        {
+          "name": "filePathField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Document field to store the full file path."
+        },
+        {
+          "name": "idField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Document field to use as the document ID."
+        },
+        {
+          "name": "docIdFormat",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Format string for constructing document IDs when idField is used."
+        },
+        {
+          "name": "separatorChar",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Column separator character to use."
+        },
+        {
+          "name": "useTabs",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Treat tab as the delimiter."
+        },
+        {
+          "name": "interpretQuotes",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Treat quotes as field wrappers."
+        },
+        {
+          "name": "ignoreEscapeChar",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Ignore the escape character during parsing."
+        },
+        {
+          "name": "lowercaseFields",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Lowercase header names before mapping to fields."
+        },
+        {
+          "name": "ignoredTerms",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "Terms that cause rows to be skipped when matched."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "pipeline",
+        "docIdPrefix",
+        "collapse"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/connector/CSVConnector.java"
+    },
+    "FileConnector": {
+      "class_name": "com.kmwllc.lucille.connector.FileConnector",
+      "short_name": "FileConnector",
+      "component_type": "connector",
+      "builder_type": "connector",
+      "description": "Traverses local and cloud storage (S3, GCP, Azure) from one or more roots and publishes a Document for each file encountered. Supports include/exclude regex filters, recency cutoffs, optional content fetching, archive/compressed file handling, file moves after processing or on error, and optional JDBC-backed state to avoid republishing recently handled files. Only files matching all filter criteria are processed. Durations use HOCON-style strings like \"1h\", \"2d\", \"3s\". For archive/compressed fil",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "paths",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "Paths or URIs to traverse (local paths or cloud storage URIs). s3 URIs must be percent-encoded; unencoded spaces or special characters will not be recognized. For example, use s3://test/folder%20with%20spaces."
+        },
+        {
+          "name": "filterOptions",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        },
+        {
+          "name": "fileOptions",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        },
+        {
+          "name": "state",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        },
+        {
+          "name": "gcp",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        },
+        {
+          "name": "azure",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        },
+        {
+          "name": "s3",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        },
+        {
+          "name": "fileHandlers",
+          "type": "Map<String, Map<String, Object",
+          "required": false,
+          "is_parent": true,
+          "description": "Per-type FileHandler configuration (e.g., csv, json, xml). Supply a class to override the default handler. Otherwise the built-in handler for csv/json/xml is used. Configure docIdPrefix inside each handler's config as needed."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "pipeline",
+        "docIdPrefix",
+        "collapse"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/connector/FileConnector.java"
+    },
+    "JSONConnector": {
+      "class_name": "com.kmwllc.lucille.connector.JSONConnector",
+      "short_name": "JSONConnector",
+      "component_type": "connector",
+      "builder_type": "connector",
+      "description": "Deprecated connector that produces documents from a JSON or JSONL file; use FileConnector with JsonFileHandler.",
+      "deprecated": true,
+      "parameters": [
+        {
+          "name": "jsonPath",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Path to the JSON or JSONL file to read."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "pipeline",
+        "docIdPrefix",
+        "collapse"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/connector/JSONConnector.java"
+    },
+    "KafkaConnector": {
+      "class_name": "com.kmwllc.lucille.connector.KafkaConnector",
+      "short_name": "KafkaConnector",
+      "component_type": "connector",
+      "builder_type": "connector",
+      "description": "Connector for reading messages from a Kafka topic.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "kafka.bootstrapServers",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "kafka.topic",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "kafka.consumerGroupId",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "kafka.clientId",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "kafka.maxPollIntervalSecs",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "idField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The field in the Kafka message to use as the Lucille document ID."
+        },
+        {
+          "name": "kafka.documentDeserializer",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "offsets",
+          "type": "Map<Integer, Long",
+          "required": false,
+          "is_parent": true,
+          "description": "A map of partition numbers to initial offsets."
+        },
+        {
+          "name": "maxMessages",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "The maximum number of messages to process before stopping."
+        },
+        {
+          "name": "messageTimeout",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "The timeout in milliseconds to use when polling Kafka. Defaults to 100ms."
+        },
+        {
+          "name": "continueOnTimeout",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Whether to continue polling after a timeout. Defaults to true."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "pipeline",
+        "docIdPrefix",
+        "collapse"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/connector/KafkaConnector.java"
+    },
+    "RSSConnector": {
+      "class_name": "com.kmwllc.lucille.connector.RSSConnector",
+      "short_name": "RSSConnector",
+      "component_type": "connector",
+      "builder_type": "connector",
+      "description": "Reads items from an RSS feed and publishes a Document for each item. Each document includes the item's fields: author (String), categories (List&lt;String&gt;), comments (String), content (String), description (String), enclosures (List&lt;ObjectNode&gt;: {type:String, url:String, length?:Long})), guid (String), isPermaLink (Boolean), link (String), title (String), pubDate (Instant). Each document stores the item's payload under the rss_item field. Can be configured to publish only items with a ",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "rssURL",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "URL of the RSS feed."
+        },
+        {
+          "name": "useGuidForDocID",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Use the RSS item GUID as the Document ID. Defaults to true; if false, a UUID is generated per Document."
+        },
+        {
+          "name": "pubDateCutoff",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Duration string; only publish items with a pubDate within this period. Defaults to including all items. If the pubDate is missing, the item will be included."
+        },
+        {
+          "name": "runDuration",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Total time to run when refreshing incrementally; must be used with refreshIncrement."
+        },
+        {
+          "name": "refreshIncrement",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Interval between feed refreshes; must be used with runDuration."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "pipeline",
+        "docIdPrefix",
+        "collapse"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/connector/RSSConnector.java"
+    },
+    "SequenceConnector": {
+      "class_name": "com.kmwllc.lucille.connector.SequenceConnector",
+      "short_name": "SequenceConnector",
+      "component_type": "connector",
+      "builder_type": "connector",
+      "description": "Produces a sequence of empty Documents with numeric IDs.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "numDocs",
+          "type": "Number",
+          "required": true,
+          "is_parent": false,
+          "description": "Total number of Documents to create."
+        },
+        {
+          "name": "startWith",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "First ID value to use. Defaults to 0."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "pipeline",
+        "docIdPrefix",
+        "collapse"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/connector/SequenceConnector.java"
+    },
+    "SolrConnector": {
+      "class_name": "com.kmwllc.lucille.connector.SolrConnector",
+      "short_name": "SolrConnector",
+      "component_type": "connector",
+      "builder_type": "connector",
+      "description": "Issues requests to Solr and optionally publishes query results as Documents. Requests should be formatted as JSON strings and may include the {runId} wildcard, which is substituted with the current runId at execution time. To send XML instead of JSON, set useXML to true. As Solr performs more validation on JSON commands than XML, it is recommended you use JSON requests.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "solr",
+          "type": "Object",
+          "required": true,
+          "is_parent": true,
+          "description": "Connection parameters for Solr; see SolrUtils.SOLR_PARENT_SPEC."
+        },
+        {
+          "name": "solrParams",
+          "type": "Map<String, Object",
+          "required": false,
+          "is_parent": true,
+          "description": "Query parameters to use when a pipeline is configured."
+        },
+        {
+          "name": "preActions",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "Requests to issue before execution; supports the {runId} wildcard."
+        },
+        {
+          "name": "postActions",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "Requests to issue after execution; supports the {runId} wildcard."
+        },
+        {
+          "name": "useXml",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Send XML requests instead of JSON. Defaults to false."
+        },
+        {
+          "name": "idField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field to use for document IDs when publishing. Defaults to \"id\"."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "pipeline",
+        "docIdPrefix",
+        "collapse"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/connector/SolrConnector.java"
+    },
+    "DatabaseConnector": {
+      "class_name": "com.kmwllc.lucille.connector.jdbc.DatabaseConnector",
+      "short_name": "DatabaseConnector",
+      "component_type": "connector",
+      "builder_type": "connector",
+      "description": "Database Connector - This connector can run a SELECT statement and return the rows from the database as published Documents. If otherSQLs is set, the sql and otherSQLs must all be ordered by their join key, and otherJoinFields must be populated. If those parameters are populated, this connector will run the otherSQL statements in parallel, flattening the rows from the otherSQL statements onto the Document as a child document.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "driver",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Driver used for creating a connection to database"
+        },
+        {
+          "name": "connectionString",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "used for establishing a connection to the right database"
+        },
+        {
+          "name": "jdbcUser",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "username to access database"
+        },
+        {
+          "name": "jdbcPassword",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "password to access database"
+        },
+        {
+          "name": "sql",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "SQL statement to query the database."
+        },
+        {
+          "name": "idField",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "column name used for id in the database"
+        },
+        {
+          "name": "preSQL",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "SQL statement that returns nothing. Performed before sql is executed. e.g. INSERT, DELETE, UPDATE, SQL DDL statement."
+        },
+        {
+          "name": "postSQL",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "SQL statement that returns nothing. Performed after sql is executed. e.g. INSERT, DELETE, UPDATE, SQL DDL statement."
+        },
+        {
+          "name": "fetchSize",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "returns the desired resultSet size if set"
+        },
+        {
+          "name": "connectionRetries",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "number of retries allowed to connect to database, defaults to 1"
+        },
+        {
+          "name": "connectionRetryPause",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "duration of pause between retries in milliseconds, defaults to 10000 or 10 seconds"
+        },
+        {
+          "name": "otherSQLs",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "list of SQL statements to query and retrieve another result set of size fetchSize if set. For joining result sets."
+        },
+        {
+          "name": "otherJoinFields",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "join field used for other result sets retrieved from otherSQLs. Required if otherSQL is provided."
+        },
+        {
+          "name": "ignoreColumns",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "list of columns to ignore when populating Lucille document from sql result set."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "pipeline",
+        "docIdPrefix",
+        "collapse"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/connector/jdbc/DatabaseConnector.java"
+    },
+    "XMLConnector": {
+      "class_name": "com.kmwllc.lucille.connector.xml.XMLConnector",
+      "short_name": "XMLConnector",
+      "component_type": "connector",
+      "builder_type": "connector",
+      "description": "Connector implementation that produces documents from a given XML file.",
+      "deprecated": true,
+      "parameters": [
+        {
+          "name": "xmlRootPath",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The path to the XML chunk to separate as a document."
+        },
+        {
+          "name": "xmlIdPath",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The path to the id for each document."
+        },
+        {
+          "name": "encoding",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The encoding of the XML document to parse: defaults to utf-8."
+        },
+        {
+          "name": "outputField",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The field to place the XML into: defaults to \"xml\"."
+        },
+        {
+          "name": "filePaths",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "The list of file paths to parse through."
+        },
+        {
+          "name": "urlFiles",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "The list of URL file paths to parse. If specified along with filePaths, urlFiles takes precedence."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "pipeline",
+        "docIdPrefix",
+        "collapse"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/connector/xml/XMLConnector.java"
+    },
+    "CSVFileHandler": {
+      "class_name": "com.kmwllc.lucille.core.fileHandler.CSVFileHandler",
+      "short_name": "CSVFileHandler",
+      "component_type": "fileHandler",
+      "builder_type": "fileHandler",
+      "description": "A file handler for CSV files. Extracts documents from the rows of a CSV file.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "docIdPrefix",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "lineNumberField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "separatorChar",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "filenameField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "filePathField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "idField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "docIdFormat",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "idFields",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "ignoredTerms",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "useTabs",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "interpretQuotes",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "ignoreEscapeChar",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "lowercaseFields",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        }
+      ],
+      "default_properties": [
+        "class",
+        "docIdPrefix"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/core/fileHandler/CSVFileHandler.java"
+    },
+    "JsonFileHandler": {
+      "class_name": "com.kmwllc.lucille.core.fileHandler.JsonFileHandler",
+      "short_name": "JsonFileHandler",
+      "component_type": "fileHandler",
+      "builder_type": "fileHandler",
+      "description": "A file handler for JSON lines.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "docIdFormat",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "idField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "idFields",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "blacklist",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "whitelist",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        }
+      ],
+      "default_properties": [
+        "class",
+        "docIdPrefix"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/core/fileHandler/JsonFileHandler.java"
+    },
+    "XMLFileHandler": {
+      "class_name": "com.kmwllc.lucille.core.fileHandler.XMLFileHandler",
+      "short_name": "XMLFileHandler",
+      "component_type": "fileHandler",
+      "builder_type": "fileHandler",
+      "description": "Given an InputStream to a .xml file, publishes Documents containing the text of separate elements at a \"root path\" in the Document. This FileHandler does not support the processFile method, processFileAndPublish must be called. Supports attribute extraction and qualifiers via use of the xpathIdPath.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "xmlRootPath",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "xmlIdPath",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "xpathIdPath",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "docIdPrefix",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "outputField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "encoding",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "skipEmptyId",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        }
+      ],
+      "default_properties": [
+        "class",
+        "docIdPrefix"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/core/fileHandler/XMLFileHandler.java"
+    },
+    "CSVIndexer": {
+      "class_name": "com.kmwllc.lucille.indexer.CSVIndexer",
+      "short_name": "CSVIndexer",
+      "component_type": "indexer",
+      "builder_type": "indexer",
+      "description": "Stores documents in a CSV file by writing selected fields as rows. Additional parameters are made available by the {@link com.kmwllc.lucille.core.Indexer} abstract class.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "path",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Output CSV file path."
+        },
+        {
+          "name": "columns",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "Ordered list of document fields to write as CSV columns."
+        },
+        {
+          "name": "includeHeader",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Write a header row with column names on connect. Defaults to true."
+        },
+        {
+          "name": "append",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Open the CSV in append mode instead of overwriting. Defaults to false."
+        }
+      ],
+      "default_properties": [],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/indexer/CSVIndexer.java"
+    },
+    "ElasticsearchIndexer": {
+      "class_name": "com.kmwllc.lucille.indexer.ElasticsearchIndexer",
+      "short_name": "ElasticsearchIndexer",
+      "component_type": "indexer",
+      "builder_type": "indexer",
+      "description": "Indexes documents to Elasticsearch using the Java Client. Additional parameters are made available by the {@link com.kmwllc.lucille.core.Indexer} abstract class.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "index",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Target Elasticsearch index name."
+        },
+        {
+          "name": "url",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Elasticsearch HTTP endpoint (e.g., https://localhost:9200)."
+        },
+        {
+          "name": "update",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Use partial update API instead of index/replace. Defaults to false."
+        },
+        {
+          "name": "acceptInvalidCert",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Allow invalid TLS certificates. Defaults to false."
+        },
+        {
+          "name": "parentName",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "join",
+          "type": "Map<String, String",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        }
+      ],
+      "default_properties": [],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/indexer/ElasticsearchIndexer.java"
+    },
+    "NopIndexer": {
+      "class_name": "com.kmwllc.lucille.indexer.NopIndexer",
+      "short_name": "NopIndexer",
+      "component_type": "indexer",
+      "builder_type": "indexer",
+      "description": "The NopIndexer performs no operations and does not send documents to any index. It is intended to be used for testing or validating that a pipeline is properly configured without ingesting content.",
+      "deprecated": false,
+      "parameters": [],
+      "default_properties": [],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/indexer/NopIndexer.java"
+    },
+    "OpenSearchIndexer": {
+      "class_name": "com.kmwllc.lucille.indexer.OpenSearchIndexer",
+      "short_name": "OpenSearchIndexer",
+      "component_type": "indexer",
+      "builder_type": "indexer",
+      "description": "Indexes documents to OpenSearch using the Java client. Additional parameters are made available by the {@link com.kmwllc.lucille.core.Indexer} abstract class.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "index",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Target OpenSearch index name."
+        },
+        {
+          "name": "url",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "OpenSearch HTTP endpoint (e.g., https://localhost:9200)."
+        },
+        {
+          "name": "update",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Use partial update API instead of index/replace. Defaults to false."
+        },
+        {
+          "name": "acceptInvalidCert",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Allow invalid TLS certificates. Defaults to false."
+        }
+      ],
+      "default_properties": [],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/indexer/OpenSearchIndexer.java"
+    },
+    "SolrIndexer": {
+      "class_name": "com.kmwllc.lucille.indexer.SolrIndexer",
+      "short_name": "SolrIndexer",
+      "component_type": "indexer",
+      "builder_type": "indexer",
+      "description": "Indexes documents to Solr using SolrJ. Additional parameters are made available by the {@link com.kmwllc.lucille.core.Indexer} abstract class.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "url",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "One or more Solr base URLs (e.g., https://localhost:8983)."
+        },
+        {
+          "name": "useCloudClient",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Use the SolrCloud client. Defaults to false."
+        },
+        {
+          "name": "acceptInvalidCert",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Allow invalid TLS certificates. Defaults to false."
+        },
+        {
+          "name": "defaultCollection",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Default Solr collection to index into when no index override is present."
+        },
+        {
+          "name": "userName",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Username for HTTP authentication."
+        },
+        {
+          "name": "password",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Password for HTTP authentication."
+        },
+        {
+          "name": "zkChroot",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "ZooKeeper chroot used with SolrCloud."
+        },
+        {
+          "name": "zkHosts",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "ZooKeeper connection strings when using SolrCloud."
+        }
+      ],
+      "default_properties": [],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/indexer/SolrIndexer.java"
+    },
+    "AddRandomBoolean": {
+      "class_name": "com.kmwllc.lucille.stage.AddRandomBoolean",
+      "short_name": "AddRandomBoolean",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Adds random Booleans to documents given parameters.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fieldName",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field name of field where data is placed. Defaults to \"data\"."
+        },
+        {
+          "name": "percentTrue",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines the rate at which \"true\" is selected and placed on a document. Defaults to 50."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/AddRandomBoolean.java"
+    },
+    "AddRandomDate": {
+      "class_name": "com.kmwllc.lucille.stage.AddRandomDate",
+      "short_name": "AddRandomDate",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Adds random Dates to documents given parameters.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fieldName",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field name of field where data is placed. Defaults to \"data\"."
+        },
+        {
+          "name": "rangeStartDate",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Date string in ISO format (2024-12-18) representing the start of the range for generating random dates. Defaults to the start of Epoch time, 1970-1-1."
+        },
+        {
+          "name": "rangeEndDate",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Date string in ISO format (2024-12-18) representing the end of the range for generating random dates. Defaults to today's date/time."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/AddRandomDate.java"
+    },
+    "AddRandomDouble": {
+      "class_name": "com.kmwllc.lucille.stage.AddRandomDouble",
+      "short_name": "AddRandomDouble",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Adds random Dates to documents given parameters.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fieldName",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field name of field where data is placed. Defaults to \"data\"."
+        },
+        {
+          "name": "rangeStart",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "Double representing the start of the range for generating random doubles. Defaults to 0.0."
+        },
+        {
+          "name": "rangeEnd",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "Double representing the end of the range for generating random doubles. Defaults to 1M (1000000.0)."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/AddRandomDouble.java"
+    },
+    "AddRandomInt": {
+      "class_name": "com.kmwllc.lucille.stage.AddRandomInt",
+      "short_name": "AddRandomInt",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Adds random Dates to documents given parameters.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fieldName",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field name of field where data is placed. Defaults to \"data\"."
+        },
+        {
+          "name": "rangeStart",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "Integer representing the start of the range for generating random ints. Defaults to 0."
+        },
+        {
+          "name": "rangeEnd",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "Integer representing the end of the range for generating random ints. Defaults to 1M (1000000)."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/AddRandomInt.java"
+    },
+    "AddRandomNestedField": {
+      "class_name": "com.kmwllc.lucille.stage.AddRandomNestedField",
+      "short_name": "AddRandomNestedField",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Adds a nested JSON array of objects on each document from a mapping of destination paths to source fields. You can set a fixed number of objects or choose a random range. If a source field is missing, optional generators can supply the value. Generators or a previously defined source field can be used to supply values.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "targetField",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Field name where the resulting JSON array of objects will be written."
+        },
+        {
+          "name": "entries",
+          "type": "Map<String, String",
+          "required": true,
+          "is_parent": true,
+          "description": "Mapping of nested destination paths to source fields. Keys are dotted paths (e.g., \"user.name\") that will be created inside each object."
+        },
+        {
+          "name": "numObjects",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "Fixed number of nested objects to create per document. Must be a positive integer. Cannot be used together with minNumObjects/maxNumObjects. Defaults to 1 when neither option is set."
+        },
+        {
+          "name": "minNumObjects",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "Lower bound (inclusive) on a random number of objects to create per document. Must be provided together with maxNumObjects."
+        },
+        {
+          "name": "maxNumObjects",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "Upper bound (inclusive) on a random number of objects to create per document. Must be provided together with minNumObjects."
+        },
+        {
+          "name": "generators",
+          "type": "Map<String, Object",
+          "required": false,
+          "is_parent": true,
+          "description": "A set of generator stage configs used to produce values when a source field in entries is missing. Each entry: Requires class (fully qualified Stage implementation)."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/AddRandomNestedField.java"
+    },
+    "AddRandomString": {
+      "class_name": "com.kmwllc.lucille.stage.AddRandomString",
+      "short_name": "AddRandomString",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Adds random Strings to a document field given parameters. Note that when randomly selecting multiple values from an integer range or from file contents, duplicates are possible -- this stage does not currently guarantee that all random terms added to a field will be distinct.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "inputDataPath",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "file path to a text file that stores datapoints to be randomly placed into field, defaults to numeric data based on range size (0 -&gt; rangeSize - 1). Note that duplicate entries will not be removed."
+        },
+        {
+          "name": "fieldName",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field name of field where data is placed, defaults to \"data\"."
+        },
+        {
+          "name": "minNumOfTerms",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "minimum number of terms to be in the field, defaults to 1."
+        },
+        {
+          "name": "maxNumOfTerms",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "maximum number of terms to be in the field, defaults to 1."
+        },
+        {
+          "name": "rangeSize",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "size of the subset of datapoints to be grabbed either from given datapath or from random numbers."
+        },
+        {
+          "name": "isNested",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "When enabled, the generated data will be output as a JSON array of objects, with each object holding the data in \"data\"."
+        },
+        {
+          "name": "concatenate",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "if true, represent multiple terms as a single space-separated string instead of multiple values, defaults to false."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/AddRandomString.java"
+    },
+    "ApplyFileHandlers": {
+      "class_name": "com.kmwllc.lucille.stage.ApplyFileHandlers",
+      "short_name": "ApplyFileHandlers",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Using a file path found on a Document, or a byte[] of its contents, applies file handlers to create children documents.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fileHandlers",
+          "type": "Map<String, Map<String, Object",
+          "required": true,
+          "is_parent": true,
+          "description": ""
+        },
+        {
+          "name": "gcp",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "options for handling GoogleCloud files. Include if you are going to process documents with the filePathField set to a Google Cloud URI. See FileConnector for necessary arguments."
+        },
+        {
+          "name": "azure",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "options for handling Azure files. Include if you are going to process documents with the filePathField set to an Azure URI. See FileConnector for necessary arguments."
+        },
+        {
+          "name": "s3",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "options for handling S3 files. Include if you are going to process documents with the filePathField set to an S3 URI. See FileConnector for necessary arguments."
+        },
+        {
+          "name": "filePathField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The field in your documents which will has the file path you want to apply handlers to. No processing will occur on documents without this field, even if they have the fileContentField present. Defaults to \"file_path\"."
+        },
+        {
+          "name": "fileContentField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The field in your documents which has the file's contents as an array of bytes. When processing a document with a path to a supported file type, the handler will process the array of bytes found in this field, if present, before having the FileContentFetcher to open an InputStream for the file's con"
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ApplyFileHandlers.java"
+    },
+    "ApplyJSONata": {
+      "class_name": "com.kmwllc.lucille.stage.ApplyJSONata",
+      "short_name": "ApplyJSONata",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Applies a given Jsonata expression to extract information from a Document's field or to transform a Document entirely. Applying a transformation to an entire document is an experimental feature and should be used with caution. See here for Jsonata implementation.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "expression",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The Jsonata expression you want to apply to each Document."
+        },
+        {
+          "name": "source",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The field to use for input. Defaults to applying your expression the entire Document and mutating the entire Document in place. Logs warning and skips document if this transformation fails, mutates reserved fields, or returns a non-object (primitive or array)."
+        },
+        {
+          "name": "destination",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The destination field into which the json response should be placed. Defaults to mutating the source field. Has no effect if source is not specified."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ApplyJSONata.java"
+    },
+    "ApplyJSoup": {
+      "class_name": "com.kmwllc.lucille.stage.ApplyJSoup",
+      "short_name": "ApplyJSoup",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Selects elements from an HTML document and extracts the raw text from them into destination fields",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "filePathField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "field name which contains a path to an html document which will be processed."
+        },
+        {
+          "name": "byteArrayField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "field name which contains a byte array of the html which will be processed."
+        },
+        {
+          "name": "stringField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "field name which contains a string of the html which will be processed."
+        },
+        {
+          "name": "charset",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "the encoding of the html document. If none is provided when filePathField is provided the charset is detected from the byte-order-mark (BOM) or meta tags and defaults to UTF-8 if none is found. If no charset is provided when byteArrayField is provided the charset defaults to UTF-8 immediately. Has n"
+        },
+        {
+          "name": "destinationFields",
+          "type": "Map<String, Map<String, String",
+          "required": true,
+          "is_parent": true,
+          "description": "defines a mapping from destination fields to selector maps. Selector maps have a `selector` field which takes a css selector and a `type` field which takes one of the following: 'text', 'attribute', 'html', or 'outerHtml'. When doing attribute extraction an additional `attribute` with the desired at"
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ApplyJSoup.java"
+    },
+    "ApplyJavascript": {
+      "class_name": "com.kmwllc.lucille.stage.ApplyJavascript",
+      "short_name": "ApplyJavascript",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Executes a JavaScript program (via GraalVM) against each document. The stage exposes a structured proxy doc for safe field access and mutation, as well as rawDoc for direct access to the underlying Document. Reading a missing field from doc yields null. Assigning null to a field stores a JSON null. Using the JavaScript delete operator removes fields (including nested fields and array indices). Exactly one of an inline script or a script file path must be provided. Field and container behavior: R",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "scriptPath",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Path to a JavaScript file to execute. Exactly one of scriptPath or script must be set."
+        },
+        {
+          "name": "script",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Inline JavaScript source to execute. Exactly one of scriptPath or script must be set."
+        },
+        {
+          "name": "s3",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your javascript file is held in S3. See FileConnector for the appropriate arguments to provide."
+        },
+        {
+          "name": "gcp",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your javascript file is held in Google Cloud. See FileConnector for the appropriate arguments to provide."
+        },
+        {
+          "name": "azure",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your javascript file is held in Azure. See FileConnector for the appropriate arguments to provide."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ApplyJavascript.java"
+    },
+    "ApplyRegex": {
+      "class_name": "com.kmwllc.lucille.stage.ApplyRegex",
+      "short_name": "ApplyRegex",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Extracts text based on a given regular expression. You can supply a comma separated list of fields to apply the text extraction to multiple fields. Extracted values are added to the field on top of the existing field value.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "List of source field names."
+        },
+        {
+          "name": "dest",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "List of destination field names. You can either supply the same number of source and destination fields. For a 1-1 mapping of results or supply one destination field for all of the source fields to be mapped into."
+        },
+        {
+          "name": "regex",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "A regex expression to find matches for. Matches will be extracted and placed in the destination fields. If the regex includes capturing groups, the value of the first group will be used."
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines how writing will be handling if the destination field is already populated. Can be 'overwrite', 'append' or 'skip'. Defaults to 'overwrite'."
+        },
+        {
+          "name": "ignoreCase",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines whether the regex matcher should ignore case. Defaults to false."
+        },
+        {
+          "name": "multiline",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines whether the regex matcher should allow matches across multiple lines. Defaults to false."
+        },
+        {
+          "name": "dotall",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Turns on the DOTALL functionality for the regex matcher. Defaults to false."
+        },
+        {
+          "name": "literal",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Toggles treating the regex expression as a literal String. Defaults to false."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ApplyRegex.java"
+    },
+    "Base64Decode": {
+      "class_name": "com.kmwllc.lucille.stage.Base64Decode",
+      "short_name": "Base64Decode",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "A Stage for decoding base64 data strings and outputting them as arrays of bytes on a document.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "inputField",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The field containing base64 data Strings you want to decode."
+        },
+        {
+          "name": "outputField",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The field you want to place the decoded data (arrays of bytes) into."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/Base64Decode.java"
+    },
+    "ChunkText": {
+      "class_name": "com.kmwllc.lucille.stage.ChunkText",
+      "short_name": "ChunkText",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "NOTE: This stage produces documents with ATTACHED children containing the chunks. To have children documents emitted as separate documents, use the emitNestedChildren stage. An example of this can be seen below.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "field of which Chunking Stage will chunk the text."
+        },
+        {
+          "name": "dest",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "the name of the field that will hold the chunk contents in the children documents. Defaults to \"text\"."
+        },
+        {
+          "name": "chunkingMethod",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "how to split contents in source. Defaults to Sentence chunking. fixed chunking (\"fixed\") : split by variable lengthToSplit."
+        },
+        {
+          "name": "regex",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "regEx that will be used to split chunks."
+        },
+        {
+          "name": "chunksToMerge",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "how many chunks to merge into the final new Chunk before overlapping is taken place. Defaults to 1, keeping the chunks as they were after splitting. e.g. chunksToMerge: 2 -> { chunk1/chunk2, chunk3/chunk4, chunk5/chunk6}."
+        },
+        {
+          "name": "characterLimit",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "hard limit number of characters in the final chunk. Truncate rest. Performed after merging and overlapping if they are set."
+        },
+        {
+          "name": "overlapPercentage",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "adds on neighboring chunk's content based on percentage of current chunk, defaults to 0."
+        },
+        {
+          "name": "lengthToSplit",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "length of characters of each initial chunk before processing."
+        },
+        {
+          "name": "preMergeMinChunkLen",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "removes and append chunk to the neighboring chunk if below given number of characters, defaults appending to next chunk."
+        },
+        {
+          "name": "preMergeMaxChunkLen",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "truncates the chunks if over given amount, applies before merging and overlapping."
+        },
+        {
+          "name": "chunksToOverlap",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "indicate the number of overlap of smaller chunks to overlap while merging into final chunk. e.g. chunksToOverlap: 1 -> { chunk1/chunk2/chunk3, chunk3/chunk4/chunk5, chunk5/chunk6/chunk7}, chunksToOverlap: 2 -> { chunk1/chunk2/chunk3, chunk2/chunk3/chunk4, chunk3/chunk4/chunk5}"
+        },
+        {
+          "name": "cleanChunks",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ChunkText.java"
+    },
+    "CollapseChildrenDocuments": {
+      "class_name": "com.kmwllc.lucille.stage.CollapseChildrenDocuments",
+      "short_name": "CollapseChildrenDocuments",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "This stage will iterate over the children documents that are attached to the current document. The fields to copy from the children document will be copied to multi-valued fields on the parent document. If dropChildren is set to true, the children documents will be dropped from the parent before letting the parent document continue down the pipeline.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fieldsToCopy",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "The fields you want to copy from a child document to the parent document."
+        },
+        {
+          "name": "dropChildren",
+          "type": "Boolean",
+          "required": true,
+          "is_parent": false,
+          "description": "Whether you want to drop the children Documents from their parents after processing."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/CollapseChildrenDocuments.java"
+    },
+    "ComputeFieldSize": {
+      "class_name": "com.kmwllc.lucille.stage.ComputeFieldSize",
+      "short_name": "ComputeFieldSize",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Computes size of given byte array field and puts that size in a field on the Document.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The field containing the byte array."
+        },
+        {
+          "name": "dest",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ComputeFieldSize.java"
+    },
+    "Concatenate": {
+      "class_name": "com.kmwllc.lucille.stage.Concatenate",
+      "short_name": "Concatenate",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Replaces wildcards in a given format String with the value for the given field. To declare a wildcard, surround the name of the field with '{}'. EX: \"{city}, {state}, {country}\" -&gt; \"Boston, MA, USA\". NOTE: If a given field is multivalued, this Stage will substitute the first value for every wildcard.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "dest",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Destination field. This Stage only supports supplying a single destination field."
+        },
+        {
+          "name": "formatString",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The format String, which will have field values substituted into its placeholders."
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines how writing will be handling if the destination field is already populated. Can be 'overwrite', 'append' or 'skip'. Defaults to 'overwrite'."
+        },
+        {
+          "name": "defaultInputs",
+          "type": "Map<String, String",
+          "required": false,
+          "is_parent": true,
+          "description": "Mapping of input fields to a default value. You do not have to supply a default for every input field. If a default is not provided, the default behavior will be to leave the wildcard for the field in place. Defaults to an empty Map."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/Concatenate.java"
+    },
+    "Contains": {
+      "class_name": "com.kmwllc.lucille.stage.Contains",
+      "short_name": "Contains",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Checks if any of the given fields contain any of the given values and tags the given output field with the value.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "contains",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "A list of values to search for."
+        },
+        {
+          "name": "fields",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "The fields to be searched."
+        },
+        {
+          "name": "output",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The field to tag if a match is found."
+        },
+        {
+          "name": "value",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The value to tag the output field with."
+        },
+        {
+          "name": "ignoreCase",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines if the matching should be case insensitive. Defaults to true."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/Contains.java"
+    },
+    "CopyFields": {
+      "class_name": "com.kmwllc.lucille.stage.CopyFields",
+      "short_name": "CopyFields",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Copies values from a source field to a destination field based on the field mapping. You can turn on the ability to copy fields as nested json by setting the isNested parameter to true or keep it false to treat the field names as literal field names.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fieldMapping",
+          "type": "Map<String, Object",
+          "required": true,
+          "is_parent": true,
+          "description": "A mapping of source field names to destination field names where the destination field names can be a string or list."
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines how writing will be handling if the destination field is already populated. Can be 'overwrite', 'append' or 'skip'. Defaults to 'overwrite'. Cannot be set with isNested."
+        },
+        {
+          "name": "isNested",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Sets whether or not to treat the given field name as nested json or a literal field name. It true, the field name will be split on '.' and each part will be treated as a level of nesting. Cannot be set with updateMode. Defaults to false."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/CopyFields.java"
+    },
+    "CreateChildrenStage": {
+      "class_name": "com.kmwllc.lucille.stage.CreateChildrenStage",
+      "short_name": "CreateChildrenStage",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Creates a designated number of children documents. This stage is intended for use in testing only. It is included in the main source tree so that it can be used in manual tests run against an artifact that excludes the test tree.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "numChildren",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "the total number of child documents to emit."
+        },
+        {
+          "name": "failAfter",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "if set, throws an exception once this many children have been generated."
+        },
+        {
+          "name": "dropChild",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "if set, marks the child with this 1\u2011based index as dropped."
+        },
+        {
+          "name": "dropParent",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "if true, marks the parent document as dropped."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/CreateChildrenStage.java"
+    },
+    "CreateStaticTeaser": {
+      "class_name": "com.kmwllc.lucille.stage.CreateStaticTeaser",
+      "short_name": "CreateStaticTeaser",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Create teasers of a given length from the given source fields. If the character limit is reached in the middle of a word, the teaser will not be truncated until the end of the word. NOTE: If a given field is multivalued, this Stage will only operate on the first value.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "list of source field names."
+        },
+        {
+          "name": "dest",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "list of destination field names. You can either supply the same number of source and destination fields for a 1-1 mapping of results or supply one destination field for all the source fields to be mapped into."
+        },
+        {
+          "name": "maxLength",
+          "type": "Number",
+          "required": true,
+          "is_parent": false,
+          "description": "The maximum number of characters to include in the extracted teaser."
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines how writing will be handling if the destination field is already populated. Can be 'overwrite', 'append' or 'skip'. Defaults to 'overwrite'."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/CreateStaticTeaser.java"
+    },
+    "DeleteFields": {
+      "class_name": "com.kmwllc.lucille.stage.DeleteFields",
+      "short_name": "DeleteFields",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Deletes a list of given fields from each document it processes.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fields",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "The list of fields to be deleted."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/DeleteFields.java"
+    },
+    "DetectLanguage": {
+      "class_name": "com.kmwllc.lucille.stage.DetectLanguage",
+      "short_name": "DetectLanguage",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Detects the language of the text in each supplied source field and outputs the language abbreviation associated with the text to the languageField.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "List of source field names."
+        },
+        {
+          "name": "languageField",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The field you want detected languages to be placed into."
+        },
+        {
+          "name": "languageConfidenceField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The field you want the confidence value to be placed into. Defaults to \"languageConfidence\""
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The methodology by which you want document fields to be updated. See {@link UpdateMode}."
+        },
+        {
+          "name": "minLength",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "The min length of Strings to be considered for language detection. Shorter Strings will be ignored. Defaults to 50."
+        },
+        {
+          "name": "maxLength",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "The max length of Strings to be considered for language detection. Longer Strings will be truncated. Defaults to 10,000."
+        },
+        {
+          "name": "minProbability",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "The min probability for a language result to be considered valid. Results below this threshold will be ignored. Defaults to 0.95."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/DetectLanguage.java"
+    },
+    "DictionaryLookup": {
+      "class_name": "com.kmwllc.lucille.stage.DictionaryLookup",
+      "short_name": "DictionaryLookup",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Finds exact matches for given input values and extracts the payloads for each match to a given destination field. The dictionary file should have a term on each line, and can support providing payloads with the syntax \"term, payload\". If any occurrences are found, they will be extracted and their associated payloads will be appended to the destination field.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "list of source field names."
+        },
+        {
+          "name": "dest",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "list of destination field names. You can either supply the same number of source and destination fields for a 1-1 mapping of results or supply one destination field for all of the source fields to be mapped into."
+        },
+        {
+          "name": "dictPath",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The path the dictionary to use for matching. If the dictPath begins with \"classpath:\" the classpath will be searched for the file. Otherwise, the local file system will be searched."
+        },
+        {
+          "name": "usePayloads",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "denotes whether payloads from the dictionary should be used or not. Defaults to true."
+        },
+        {
+          "name": "ignoreCase",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "setOnly",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "If true, the destination field will be set to true when a match is found (instead of outputting the match itself). You can control this behavior with useAnyMatch and ignoreMissingSource. setOnly defaults to false."
+        },
+        {
+          "name": "useAnyMatch",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Use in combination with setOnly. If true, the destination field will be set to true if any values in any source field are present in the dictionary. If false, the destination field will be set to true if all the values in each source field are present in the dictionary. Defaults to false."
+        },
+        {
+          "name": "ignoreMissingSource",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Use in combination with setOnly. If true, the destination field will be set to true if the source field is missing. Defaults to false."
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines how writing will be handling if the destination field is already populated. Can be 'overwrite', 'append' or 'skip'. Defaults to 'overwrite'."
+        },
+        {
+          "name": "s3",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your dictionary files are held in S3. See FileConnector for the appropriate arguments to provide."
+        },
+        {
+          "name": "gcp",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your dictionary files are held in Google Cloud. See FileConnector for the appropriate arguments to provide."
+        },
+        {
+          "name": "azure",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your dictionary files are held in Azure. See FileConnector for the appropriate arguments to provide."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/DictionaryLookup.java"
+    },
+    "DropDocument": {
+      "class_name": "com.kmwllc.lucille.stage.DropDocument",
+      "short_name": "DropDocument",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "A stage that drops documents that pass through it. Intended to be used with the conditional framework. By default, this stage drops 100% of documents. If an optional percentage parameter is provided each document will be dropped independently with that probability. This probabilistic behavior is used primarily for testing to simulate loss in a non-deterministic way.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "percentage",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "the probability in the inclusive range 0.0-1.0 indicating the chance that an incoming document will be dropped, defaults to 1.0."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/DropDocument.java"
+    },
+    "DropValues": {
+      "class_name": "com.kmwllc.lucille.stage.DropValues",
+      "short_name": "DropValues",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Removes all occurrences of a given value from the source fields. Field values are not removed if they contain a blacklisted value, only if it is an exact match between the two Strings.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "List of source field names."
+        },
+        {
+          "name": "values",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "The values to be blacklisted and removed from the source fields."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/DropValues.java"
+    },
+    "ElasticsearchLookup": {
+      "class_name": "com.kmwllc.lucille.stage.ElasticsearchLookup",
+      "short_name": "ElasticsearchLookup",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "looks up an existing document in Elasticsearch by its ID and copies specified source fields from the Elasticsearch document into the current Lucille document, writing into destination fields according to a chosen update mode.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "elasticsearch",
+          "type": "Object",
+          "required": true,
+          "is_parent": true,
+          "description": ""
+        },
+        {
+          "name": "source",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "list of field names to fetch from Elasticsearch."
+        },
+        {
+          "name": "dest",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "corresponding list of field names into which to write values."
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "how to merge fetched values into the document. Defaults to OVERWRITE if not specified."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ElasticsearchLookup.java"
+    },
+    "EmbeddedPython": {
+      "class_name": "com.kmwllc.lucille.stage.EmbeddedPython",
+      "short_name": "EmbeddedPython",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Executes user-provided Python code against each Document using an embedded GraalPy interpreter. Python scripts interact with the Document through a proxy object that behaves like both a Python dictionary and an object with attributes. This dual interface is intentional and mirrors common Python patterns: attribute-style access (`doc.field`) for convenience, and dictionary-style access (`doc[\"field\"]`) for dynamic or non-identifier field names. Both forms operate on the same underlying data.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "scriptPath",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Path to the Python script to run."
+        },
+        {
+          "name": "script",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Inline Python code to execute instead of a file."
+        },
+        {
+          "name": "s3",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your Python file is held in S3. See FileConnector for the appropriate arguments to provide."
+        },
+        {
+          "name": "gcp",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your javascript file is held in Google Cloud. See FileConnector for the appropriate arguments to provide."
+        },
+        {
+          "name": "azure",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your javascript file is held in Azure. See FileConnector for the appropriate arguments to provide."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/EmbeddedPython.java"
+    },
+    "EmitNestedChildren": {
+      "class_name": "com.kmwllc.lucille.stage.EmitNestedChildren",
+      "short_name": "EmitNestedChildren",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "This stage emits attached children documents, removing them from the parent document. Will skip document if no children are found.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fieldsToCopy",
+          "type": "Map<String, String",
+          "required": false,
+          "is_parent": true,
+          "description": "map of fields to copy from parent to children. It's a map of the source field name to the destination field name."
+        },
+        {
+          "name": "dropParent",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "if set to true, will mark parent document as dropped. Defaults to false."
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The methodology by which you want to update fields, particularly for updating multivalued fields on children documents. See {@link UpdateMode} for more information."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/EmitNestedChildren.java"
+    },
+    "ExternalPython": {
+      "class_name": "com.kmwllc.lucille.stage.ExternalPython",
+      "short_name": "ExternalPython",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "scriptPath",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "pythonExecutable",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "functionName",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "port",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "requirementsPath",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ExternalPython.java"
+    },
+    "ExtractEntities": {
+      "class_name": "com.kmwllc.lucille.stage.ExtractEntities",
+      "short_name": "ExtractEntities",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Stage for performing dictionary based entity extraction on a given field, using terms from a given dictionary file. The dictionary file should have a term on each line, and can support providing payloads with the syntax \"term, payload\". If any occurrences are found, they will be extracted and their associated payloads will be appended to the destination field.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "dictionaries",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "source",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "list of source field names."
+        },
+        {
+          "name": "dest",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "list of destination field names. You can either supply the same number of source and destination fields for a 1-1 mapping of results or supply one destination field for all of the source fields to be mapped into."
+        },
+        {
+          "name": "ignoreCase",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Denotes whether this Stage will ignore case determining when making matches. Defaults to false."
+        },
+        {
+          "name": "onlyWhitespaceSeparated",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Denotes whether terms must be whitespace separated to be candidates for matching. Defaults to false."
+        },
+        {
+          "name": "stopOnHit",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Denotes whether this matcher should stop after one hit. Defaults to false."
+        },
+        {
+          "name": "onlyWholeWords",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "If true, matches must be whole words (not embedded in other letters). For example, \"OMAN\" will not match inside \"rOMAN\". I false, substrings within words can match. Defaults to true."
+        },
+        {
+          "name": "ignoreOverlaps",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "usePayloads",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "denotes whether paylaods from the dictionary should be used or not."
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines how writing will be handling if the destination field is already populated. Can be 'overwrite', 'append' or 'skip'. Defaults to 'overwrite'."
+        },
+        {
+          "name": "entityField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "s3",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your dictionary files are held in S3. See FileConnector for the appropriate arguments to provide."
+        },
+        {
+          "name": "gcp",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your dictionary files are held in Google Cloud. See FileConnector for the appropriate arguments to provide."
+        },
+        {
+          "name": "azure",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your dictionary files are held in Azure. See FileConnector for the appropriate arguments to provide."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ExtractEntities.java"
+    },
+    "ExtractEntitiesFST": {
+      "class_name": "com.kmwllc.lucille.stage.ExtractEntitiesFST",
+      "short_name": "ExtractEntitiesFST",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Extracts dictionary-based entities from document text fields using a Lucene FST. Matches can optionally map to payload values, control overlap behavior, and quit on first hit. Dictionaries are read as UTF-8 meaning all files must be UTF-8 encoded. Any invalid bytes will prevent those entries from matching during extraction.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "dictionaries",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "Paths to CSV dictionary files. Each row\u2019s first column is the extraction term and the second column (optional) is the payload."
+        },
+        {
+          "name": "source",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "List of source field names."
+        },
+        {
+          "name": "dest",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "List of destination field names. You can either supply the same number of source and destination fields for a 1-1 mapping of results or supply one destination field for all of the source fields to be mapped into."
+        },
+        {
+          "name": "usePayloads",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Denotes whether payloads from the dictionary should be used or not."
+        },
+        {
+          "name": "onlyWholeWords",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "If true, matches must be bounded by non-letters on both sides (word boundaries). If false, substrings inside larger words are allowed. Defaults to true."
+        },
+        {
+          "name": "ignoreOverlaps",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "If true, emits only the single longest match starting at a position; if false, emits all overlapping matches that start at that position. Defaults to false."
+        },
+        {
+          "name": "stopOnHit",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Denotes whether this matcher should stop after one hit. Defaults to false."
+        },
+        {
+          "name": "ignoreCase",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Denotes whether this Stage will ignore case determining when making matches. Defaults to false."
+        },
+        {
+          "name": "dictsSorted",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "If true, assumes dictionary rows are already lexicographically sorted by the key (trimmed and lowercased if ignoreCase=true). Skips sorting to reduce startup time. Defaults to false."
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines how writing will be handled if the destination field is already populated. Can be 'overwrite', 'append' or 'skip'. Defaults to 'overwrite'."
+        },
+        {
+          "name": "entityField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "When set and usePayloads=true, also writes the matched normalized surface terms to this field."
+        },
+        {
+          "name": "s3",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your dictionary files are held in S3. See FileConnector for the appropriate arguments to provide."
+        },
+        {
+          "name": "gcp",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your dictionary files are held in Google Cloud. See FileConnector for the appropriate arguments to provide."
+        },
+        {
+          "name": "azure",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "If your dictionary files are held in Azure. See FileConnector for the appropriate arguments to provide."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ExtractEntitiesFST.java"
+    },
+    "ExtractFirstCharacter": {
+      "class_name": "com.kmwllc.lucille.stage.ExtractFirstCharacter",
+      "short_name": "ExtractFirstCharacter",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Extracts the first character from each of the given input fields and set the associated output field to contain the character. If the character is not alphanumeric, then 'nonaplha' will be placed in the destination field.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "replacement",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The String to place in the output field if the first character is not a letter. If \"SKIP\" is supplied, the output field will not be set to anything. Defaults to \"nonalpha\"."
+        },
+        {
+          "name": "fieldMapping",
+          "type": "Map<String, String",
+          "required": true,
+          "is_parent": true,
+          "description": "A mapping of source-&gt;destination fields."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ExtractFirstCharacter.java"
+    },
+    "FetchFileContent": {
+      "class_name": "com.kmwllc.lucille.stage.FetchFileContent",
+      "short_name": "FetchFileContent",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "A stage for getting a file's contents (array of bytes) using a FileContentFetcher.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "filePathField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The document field that contains the file path. Defaults to \"file_path\". No processing will take place on documents that do not have this field."
+        },
+        {
+          "name": "fileContentField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The document field to write the contents to. Defaults to \"file_content\". This stage will overwrite any contents associated with this field."
+        },
+        {
+          "name": "s3",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "Add if you will be fetching contents from S3 files. See FileConnector for the appropriate arguments to provide."
+        },
+        {
+          "name": "azure",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "Add if you will be fetching contents from Azure files. See FileConnector for the appropriate arguments to provide."
+        },
+        {
+          "name": "gcp",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": "Add if you will be fetching contents from Google cloud. See FileConnector for the appropriate arguments to provide."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/FetchFileContent.java"
+    },
+    "FetchUri": {
+      "class_name": "com.kmwllc.lucille.stage.FetchUri",
+      "short_name": "FetchUri",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Fetches byte data of a given URL field and places data into a specified field.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Field name of URL to be fetched; document will be skipped if the field with this name is absent or empty."
+        },
+        {
+          "name": "dest",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Field name of destination for byte data; document will be skipped if the field with this name is absent or empty. Field will contain response data as a base64-encoded string. Original bytes can be retrieved via doc.getBytes(dest) or Base64.getDecoder().decode(document.getString(dest)). When parsing "
+        },
+        {
+          "name": "sizeSuffix",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "suffix to be appended to end of source field name for the size of data. e.g. url --&gt; url_(sizeSuffix) where source name is url."
+        },
+        {
+          "name": "statusSuffix",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "suffix to be appended to end of source field name for the status code of the fetch request."
+        },
+        {
+          "name": "errorSuffix",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "suffix to be appended to end of source field name for any errors in process."
+        },
+        {
+          "name": "maxRetries",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "max number of tries the request will be made. Defaults to 0 retries."
+        },
+        {
+          "name": "initialExpiryMs",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "number of milliseconds that would be waited before retrying the request. Defaults to 100ms."
+        },
+        {
+          "name": "maxExpiryMs",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "max number of milliseconds that would be waited before retrying a request. Defaults to 10000ms, 10s."
+        },
+        {
+          "name": "connectionRequestTimeout",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "the connection request timeout in milliseconds. Defaults to 60000ms, 1m."
+        },
+        {
+          "name": "connectTimeout",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "the connection timeout in milliseconds. Defaults to 60000ms, 1m."
+        },
+        {
+          "name": "socketTimeout",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "the socket timeout in milliseconds. Defaults to 60000ms, 1m."
+        },
+        {
+          "name": "maxSize",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "max size, in bytes, of data to be read from fetch."
+        },
+        {
+          "name": "statusCodeRetryList",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "headers",
+          "type": "Map<String, Object",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/FetchUri.java"
+    },
+    "HashFieldValueToBucket": {
+      "class_name": "com.kmwllc.lucille.stage.HashFieldValueToBucket",
+      "short_name": "HashFieldValueToBucket",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "This stage will use the java object hash code modulus the number of buckets as specified in the buckets parameter, the resulting label will be placed in the dest field.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fieldName",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Field that will be used as the input for the hashing function."
+        },
+        {
+          "name": "dest",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Field that will contain the hash bucket label."
+        },
+        {
+          "name": "buckets",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "list of buckets for the hash function."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/HashFieldValueToBucket.java"
+    },
+    "Length": {
+      "class_name": "com.kmwllc.lucille.stage.Length",
+      "short_name": "Length",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Determines the length of a field and places the value into a specified field.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fieldMapping",
+          "type": "Map<String, String",
+          "required": true,
+          "is_parent": true,
+          "description": "A mapping of the field to check the size of to the name of the field to place the length into."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/Length.java"
+    },
+    "MatchQuery": {
+      "class_name": "com.kmwllc.lucille.stage.MatchQuery",
+      "short_name": "MatchQuery",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Evaluates a set of queries against specified text fields in each document and records which queries matched.",
+      "deprecated": false,
+      "parameters": [],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/MatchQuery.java"
+    },
+    "NormalizeFieldNames": {
+      "class_name": "com.kmwllc.lucille.stage.NormalizeFieldNames",
+      "short_name": "NormalizeFieldNames",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Normalizes a document's field values by replacing spaces and non-alphanumeric characters with given delimiters.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "delimiter",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "A delimiter to replace spaces, defaults to \"_\"."
+        },
+        {
+          "name": "nonAlphanumReplacement",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "A replacement for non-alphanumeric characters, defaults to \"\"."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/NormalizeFieldNames.java"
+    },
+    "NormalizeText": {
+      "class_name": "com.kmwllc.lucille.stage.NormalizeText",
+      "short_name": "NormalizeText",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Provides 4 modes for normalizing the case of text: Lowercase, Uppercase, Title Case and Sentence Case. The desired mode should be set in the configuration file. NOTE: This stage will not preserve any capitalization from the original document. As such, proper nouns, abbreviations and acronyms may not be correctly capitalized after normalization.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "List of source field names."
+        },
+        {
+          "name": "dest",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "List of destination field names. You can either supply the same number of source and destination fields for a 1-1 mapping of results or supply one destination field for all of the source fields to be mapped into."
+        },
+        {
+          "name": "mode",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The mode for normalization: uppercase, lowercase, sentence_case, title_case."
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines how writing will be handling if the destination field is already populated. Can be 'overwrite', 'append' or 'skip'. Defaults to 'overwrite'."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/NormalizeText.java"
+    },
+    "OpenAIEmbed": {
+      "class_name": "com.kmwllc.lucille.stage.OpenAIEmbed",
+      "short_name": "OpenAIEmbed",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "This stage uses openAI embedding services to embed a text field in a Lucille document or its children document(s). Will truncate to token limit before sending request. Retrieves API key from config.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "field of which the embedding Stage will retrieve content from"
+        },
+        {
+          "name": "apiKey",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "API key used for OpenAI requests"
+        },
+        {
+          "name": "embedDocument",
+          "type": "Boolean",
+          "required": true,
+          "is_parent": false,
+          "description": "Embeds the document's source if set to true."
+        },
+        {
+          "name": "embedChildren",
+          "type": "Boolean",
+          "required": true,
+          "is_parent": false,
+          "description": "Embeds the document's children source if set to true."
+        },
+        {
+          "name": "dest",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "name of the field that will hold the embeddings, defaults to \"embeddings\""
+        },
+        {
+          "name": "modelName",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "the name of the OpenAI embedding model to use, set default to text-embedding-3-small text-embedding-3-small"
+        },
+        {
+          "name": "dimensions",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "number of dimensions the resulting embedding should have. Only supported in text-embedding-3 and later models. Default set to null, which will call the model's default dimensions."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/OpenAIEmbed.java"
+    },
+    "ParseDate": {
+      "class_name": "com.kmwllc.lucille.stage.ParseDate",
+      "short_name": "ParseDate",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Parses dates into ISO_INSTANT format to be ingested by Solr. If a given date cannot be parsed, it will not be passed through to the destination field.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "List of source field names."
+        },
+        {
+          "name": "dest",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "List of destination field names. You can either supply the same number of source and destination fields for a 1-1 mapping of results or supply one destination field for all of the source fields to be mapped into."
+        },
+        {
+          "name": "formatStrs",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "A List of format Strings to try and apply to the dates. Defaults to an empty list."
+        },
+        {
+          "name": "formatters",
+          "type": "List",
+          "required": false,
+          "is_parent": false,
+          "description": "List of formatter classes to be used for parsing dates. Formatters must implement the Function&lt;String, LocalDate&gt; Interface."
+        },
+        {
+          "name": "timeZoneId",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The time zone ID to use when parsing dates. Defaults to the system default. See here for more info about time zone ids"
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines how writing will be handling if the destination field is already populated. Can be 'overwrite', 'append' or 'skip'. Defaults to 'overwrite'."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ParseDate.java"
+    },
+    "ParseFilePath": {
+      "class_name": "com.kmwllc.lucille.stage.ParseFilePath",
+      "short_name": "ParseFilePath",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "This stage will take a field that contains a file path (like c:\\directory\\filename.txt) and parse out information about the path: - filename: The name of the file. - folder: The parent of the file. - path: The path to the file. (Normalized) - file_extension: The extension of the file.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "filePathField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The field name that contains the file path. Defaults to \"file_path\"."
+        },
+        {
+          "name": "fileSep",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The separator to use in the normalized path output from this stage. Defaults to the operating system's separator. Must be either \"/\" or \"\\\". You should specify the separator if you are running Lucille on Windows but working with Unix file paths (or vice versa) and you want the original separators to"
+        },
+        {
+          "name": "uppercaseExtension",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "If true, the extracted file extension will be in all uppercase letters. Defaults to true."
+        },
+        {
+          "name": "includeHierarchy",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "If true, a field (\"file_paths\") will be populated with all of the normalized subpaths leading up to the full file path (to aid in building a hierarchical aggregator/facet for a search engine)."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ParseFilePath.java"
+    },
+    "ParseFloats": {
+      "class_name": "com.kmwllc.lucille.stage.ParseFloats",
+      "short_name": "ParseFloats",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Parses an array of floats from a string field and emits each number individually into a Lucille document field.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "field",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "the name of the document field containing the JSON string to parse."
+        },
+        {
+          "name": "dest",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "the name of the document field into which to write the floats."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ParseFloats.java"
+    },
+    "ParseJson": {
+      "class_name": "com.kmwllc.lucille.stage.ParseJson",
+      "short_name": "ParseJson",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Parses a JSON string and sets fields on the processed document according to the configured mapping using JsonPath expressions. If no JsonPath expressions are provided, all JSON fields are copied to the document. @see JsonPath",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "src",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The field containing the JSON string to be parsed."
+        },
+        {
+          "name": "sourceIsBase64",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "jsonFieldPaths",
+          "type": "Map<String, Object",
+          "required": false,
+          "is_parent": true,
+          "description": "Defines the mapping from JsonPath expressions to the destination fields in the processed document. Omit this property if you want all fields from the JSON to be copied to the top level of the document."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ParseJson.java"
+    },
+    "Print": {
+      "class_name": "com.kmwllc.lucille.stage.Print",
+      "short_name": "Print",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Logs all received documents in JSON format and/or writes them to a designated file.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "shouldLog",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Whether to log the document in JSON format at INFO level. Defaults to true."
+        },
+        {
+          "name": "overwriteFile",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Whether the output file's contents should be overwritten if they already exist. Defaults to true."
+        },
+        {
+          "name": "appendThreadName",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Whether the current thread's name should be appended to the outputFile's filename, keeping the results from individual threads separate. Has no effect if no outputFile is provided. Defaults to true."
+        },
+        {
+          "name": "outputFile",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "A file to append the documents to (will be created if it doesn't already exist)."
+        },
+        {
+          "name": "whitelist",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "A list of the only fields to include in the output."
+        },
+        {
+          "name": "blacklist",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "A list of fields to exclude from the output."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/Print.java"
+    },
+    "PromptOllama": {
+      "class_name": "com.kmwllc.lucille.stage.PromptOllama",
+      "short_name": "PromptOllama",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "A stage for sending a Document to an LLM for general enrichment via the use of a system prompt, with particular support for JSON-based responses.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "hostURL",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "A URL to your ollama server."
+        },
+        {
+          "name": "modelName",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The name of the model you want to communicate with. See https://ollama.ai/library for available models/ the appropriate names to use."
+        },
+        {
+          "name": "timeout",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "How long you want to wait for a request to be processed before failing. Passed directly to Ollama. Uses Ollama's default of 10 seconds when not specified. You may want to increase the timeout if your Lucille Configuration uses multiple Worker threads (and you are working with Ollama locally)."
+        },
+        {
+          "name": "requireJSON",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Whether you are requiring and expecting the LLM to output a JSON-only response. When true, Lucille will throw an Exception upon receiving a non-JSON response from the LLM. When false, Lucille will place the response's raw contents into the \"ollamaResponse\" field. Additionally, when set to true, your"
+        },
+        {
+          "name": "systemPrompt",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The system prompt you want to provide to your LLM. Defaults to using no system prompt, as you may be using a model created from a Modelfile with a System Prompt already specified. Note: It is recommended that you instruct your LLM to format its output as a JSON object, even if you are only asking fo"
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "How you want Lucille to update the fields in your Document, based on what it extracts from a JSON based response. Has no effect on a textual response placed in \"ollamaResponse\" - that will always overwrite any existing data. Should be one of \"append\", \"overwrite\", or \"skip\". Defaults to overwrite."
+        },
+        {
+          "name": "fields",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "The fields in the document you want to be sent to the LLM. If the list is empty or not specified, defaults to sending the entire Document to the LLM for enriching."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/PromptOllama.java"
+    },
+    "QueryDatabase": {
+      "class_name": "com.kmwllc.lucille.stage.QueryDatabase",
+      "short_name": "QueryDatabase",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "This Stage runs a prepared SQL statement on keyfields in a document and places the results in fields of choice. This stage should try and reconnect to the database in the future.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "driver",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Driver used for creating a connection to database."
+        },
+        {
+          "name": "connectionString",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "used for establishing a connection to the right database."
+        },
+        {
+          "name": "jdbcUser",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "username to access database."
+        },
+        {
+          "name": "jdbcPassword",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "password to access database."
+        },
+        {
+          "name": "keyFields",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "Strings to replace ? in the statement made in sql. e.g. keyFields : [\"123\"] sql: SELECT name FROM meal WHERE id = ?"
+        },
+        {
+          "name": "inputTypes",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "Each input type of each of the keyField."
+        },
+        {
+          "name": "sql",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "SQL statement that would be requested to the database. Allow for \"?\" character for keyFields configuration."
+        },
+        {
+          "name": "connectionRetries",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "number of retries allowed to connect to database, defaults to 1."
+        },
+        {
+          "name": "connectionRetryPause",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "duration of pause between retries in milliseconds, defaults to 10000 or 10 seconds."
+        },
+        {
+          "name": "fieldMapping",
+          "type": "Map<String, String",
+          "required": true,
+          "is_parent": true,
+          "description": "map of columns retrieved from result set to the name of the field in the Lucille document it will populate with."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/QueryDatabase.java"
+    },
+    "QueryOpensearch": {
+      "class_name": "com.kmwllc.lucille.stage.QueryOpensearch",
+      "short_name": "QueryOpensearch",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "A stage for running a search request on an Opensearch index, specifying a field in the response, and putting that field's value on a Document. The specified query can either be found in a Document's field or specified in your Config.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "Configuration for your OpenSearch instance.",
+          "type": "Object",
+          "required": true,
+          "is_parent": true,
+          "description": "Configuration for your OpenSearch instance."
+        },
+        {
+          "name": "templateName",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The name / id of a saved search template in your Opensearch cluster that you want to use. If not specified, you must specify a searchTemplate to use for the Stage instead."
+        },
+        {
+          "name": "searchTemplate",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The query template you want to use. The parameter names you define should match field names in the Documents you are processing. You can define default values if fields will not always be prevalent in Documents. See Opensearch's Search Templates documentation for information about defining templates"
+        },
+        {
+          "name": "opensearchResponsePath",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "A path to a field in the Opensearch response whose value you want to place on a Lucille Document. Use JsonPointer notation (separating fields / array indices by a '/'). An IllegalArgumentException will be thrown if the path has invalid formatting. Defaults to using the entire response."
+        },
+        {
+          "name": "destinationField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The name of the field you'll write the response value to in a Lucille Document. Defaults to \"response\"."
+        },
+        {
+          "name": "requiredParamNames",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "A list of field names that you require to be found on every document. This list should... Contain all parameters you defined in your search template that do not have default values."
+        },
+        {
+          "name": "optionalParamNames",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": "A list of field names that you do not require to be found on every document, but want to include in your if they are present. This list should... Contain all parameters in your search template that have default values."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/QueryOpensearch.java"
+    },
+    "RandomVector": {
+      "class_name": "com.kmwllc.lucille.stage.RandomVector",
+      "short_name": "RandomVector",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Generates a random vector of floats for each specified field in the document. fields(List&lt;String&gt;) : the document field names to populate with random vectors. dimensions (int) : the length of each generated float vector. updateMode (String, optional) : how to merge the generated vector into the existing document field. Defaults to OVERWRITE if unspecified.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fields",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "the document field names to populate with random vectors."
+        },
+        {
+          "name": "dimensions",
+          "type": "Number",
+          "required": true,
+          "is_parent": false,
+          "description": "the length of each generated float vector."
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "how to merge the generated vector into the existing document field. Defaults to OVERWRITE if unspecified."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/RandomVector.java"
+    },
+    "RemoveDiacritics": {
+      "class_name": "com.kmwllc.lucille.stage.RemoveDiacritics",
+      "short_name": "RemoveDiacritics",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Removes diacritics and accents from String fields.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "Name of source field."
+        },
+        {
+          "name": "destination",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Name of field where transformed string is put. If not provided the string is mutated in place."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/RemoveDiacritics.java"
+    },
+    "RemoveDuplicateValues": {
+      "class_name": "com.kmwllc.lucille.stage.RemoveDuplicateValues",
+      "short_name": "RemoveDuplicateValues",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Removes duplicate values from the given list of fields.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fieldMapping",
+          "type": "Map<String, Object",
+          "required": true,
+          "is_parent": true,
+          "description": "A mapping of fields to remove duplicates from and the field to output the result to."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/RemoveDuplicateValues.java"
+    },
+    "RemoveEmptyFields": {
+      "class_name": "com.kmwllc.lucille.stage.RemoveEmptyFields",
+      "short_name": "RemoveEmptyFields",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Removes empty fields from a document.",
+      "deprecated": false,
+      "parameters": [],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/RemoveEmptyFields.java"
+    },
+    "RenameFields": {
+      "class_name": "com.kmwllc.lucille.stage.RenameFields",
+      "short_name": "RenameFields",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Renames a given set of source fields to a given set of destination fields. You must specify the same number of source and destination fields.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines how writing will be handling if the destination field is already populated. Can be 'overwrite', 'append' or 'skip'. Defaults to 'overwrite'."
+        },
+        {
+          "name": "fieldMapping",
+          "type": "Map<String, String",
+          "required": true,
+          "is_parent": true,
+          "description": "A 1-1 mapping of original field names to new field names."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/RenameFields.java"
+    },
+    "ReplacePatterns": {
+      "class_name": "com.kmwllc.lucille.stage.ReplacePatterns",
+      "short_name": "ReplacePatterns",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Replaces any of the given Patterns found in the source fields with a given replacement String.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "List of source field names."
+        },
+        {
+          "name": "dest",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "List of destination field names. You can either supply the same number of source and destination fields for a 1-1 mapping of results or supply one destination field for all of the source fields to be mapped into."
+        },
+        {
+          "name": "regex",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "A list regex expression to find matches for. Matches will be extracted and placed in the destination fields."
+        },
+        {
+          "name": "replacement",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The String to replace regex matches with. If null, pattern replacement will only take place if a replacementField is specified and set to a String in a document."
+        },
+        {
+          "name": "replacementField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Specify a field in the document that is set to a String. If non-null, replacements of a pattern within a document will use the string set to the replacementField, if present. Otherwise, we fall back onto replacement: If it is not null, patterns are replaced with it; if it is null, no replacement tak"
+        },
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines how writing will be handling if the destination field is already populated. Can be 'overwrite', 'append' or 'skip'. Defaults to 'overwrite'."
+        },
+        {
+          "name": "ignoreCase",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines whether the regex matcher should ignore case. Defaults to false."
+        },
+        {
+          "name": "multiline",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Determines whether the regex matcher should allow matches across multiple lines. Defaults to false."
+        },
+        {
+          "name": "dotall",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Turns on the DOTALL functionality for the regex matcher. Defaults to false."
+        },
+        {
+          "name": "literal",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": "Toggles treating the regex expression as a literal String. Defaults to false."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/ReplacePatterns.java"
+    },
+    "SetStaticValues": {
+      "class_name": "com.kmwllc.lucille.stage.SetStaticValues",
+      "short_name": "SetStaticValues",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Sets the value of given fields to a mapped value.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "updateMode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The update mode to use when updating the fields."
+        },
+        {
+          "name": "staticValues",
+          "type": "Map<String, Object",
+          "required": true,
+          "is_parent": true,
+          "description": "A mapping from the field to the value."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/SetStaticValues.java"
+    },
+    "SkipDocument": {
+      "class_name": "com.kmwllc.lucille.stage.SkipDocument",
+      "short_name": "SkipDocument",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Marks all documents as skipped. Intended to be used with Conditions to determine which documents will be affected. By default, this stage moves to skip 100% of documents to the end of the pipeline and then sends the document to the indexer. Intended for a deletion use case where a Document representing a delete operation should reach the Indexer but should not be processed by downstream Stages in the pipeline.",
+      "deprecated": false,
+      "parameters": [],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/SkipDocument.java"
+    },
+    "SplitFieldValues": {
+      "class_name": "com.kmwllc.lucille.stage.SplitFieldValues",
+      "short_name": "SplitFieldValues",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Splits a field based off a delimiter and places the separated values into a given output field.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "inputField",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The field to split on."
+        },
+        {
+          "name": "outputField",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The field to place the separated values into."
+        },
+        {
+          "name": "delimiter",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The String to split the field by."
+        },
+        {
+          "name": "trimWhitespace",
+          "type": "Boolean",
+          "required": true,
+          "is_parent": false,
+          "description": "True if separated values should trim whitespace, false otherwise."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/SplitFieldValues.java"
+    },
+    "Timestamp": {
+      "class_name": "com.kmwllc.lucille.stage.Timestamp",
+      "short_name": "Timestamp",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Adds a timestamp into a given field.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "destField",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The field to place the timestamp into."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/Timestamp.java"
+    },
+    "TrimWhitespace": {
+      "class_name": "com.kmwllc.lucille.stage.TrimWhitespace",
+      "short_name": "TrimWhitespace",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Removes leading and trailing whitespace from every value in a given list of fields.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fields",
+          "type": "List[List<String]",
+          "required": true,
+          "is_parent": false,
+          "description": "The list of fields to trim whitespace from."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/TrimWhitespace.java"
+    },
+    "TruncateField": {
+      "class_name": "com.kmwllc.lucille.stage.TruncateField",
+      "short_name": "TruncateField",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Truncates a string field to a given number of characters. Can be inplace or return the result to a seperate field.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "source",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The field to be truncated. If this is not a string it is still parsed as a string to generate a result. If a document does not have the field it will be skipped. If the fields contents cannot be interpreted as a String the document is also skipped and this is logged as a warning."
+        },
+        {
+          "name": "maxSize",
+          "type": "Number",
+          "required": true,
+          "is_parent": false,
+          "description": "The maximum number of characters to truncate the input to. If this is negative a StageException is thrown."
+        },
+        {
+          "name": "destination",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The field where the truncated data should be placed. If this is not provided the operation fis done inplace. If this field already exists it is overwritten."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/TruncateField.java"
+    },
+    "XPathExtractor": {
+      "class_name": "com.kmwllc.lucille.stage.XPathExtractor",
+      "short_name": "XPathExtractor",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Extracts values out of XML document fields using XPath expressions.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "xmlField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The name of the document field which contains the XML field: defaults to \"xml\"."
+        },
+        {
+          "name": "fieldMapping",
+          "type": "Map<String, List<String",
+          "required": true,
+          "is_parent": true,
+          "description": "A mapping of the XPath expression to the list of fields to place the evaluated expression in."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/stage/XPathExtractor.java"
+    },
+    "FileContentFetcher": {
+      "class_name": "com.kmwllc.lucille.util.FileContentFetcher",
+      "short_name": "FileContentFetcher",
+      "component_type": "other",
+      "builder_type": "withoutDefaults",
+      "description": "",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "fetcherClass",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        }
+      ],
+      "default_properties": [],
+      "source_file": "lucille-core/src/main/java/com/kmwllc/lucille/util/FileContentFetcher.java"
+    },
+    "ApplyOpenNLPNameFinders": {
+      "class_name": "com.kmwllc.lucille.stage.ApplyOpenNLPNameFinders",
+      "short_name": "ApplyOpenNLPNameFinders",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Applies OpenNLP NameFinder models of your choosing to a specified field of text on a Document. Extracts the detected names and adds them to the Document.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "textField",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The name of the field containing text you want to get names from."
+        },
+        {
+          "name": "tokenizerPath",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "A path to the binaries of the tokenizer model you want to use. Can be a classpath file or a local file."
+        },
+        {
+          "name": "models",
+          "type": "Map<String, String",
+          "required": true,
+          "is_parent": true,
+          "description": "A map of \"name types\" to paths to OpenNLP model binaries. The keys for this map will become the field names containing the names extracted by that model. Can be a classpath file or a local file."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-plugins/lucille-entity-extraction/src/main/java/com/kmwllc/lucille/stage/ApplyOpenNLPNameFinders.java"
+    },
+    "JlamaEmbed": {
+      "class_name": "com.kmwllc.lucille.jlama.stage.JlamaEmbed",
+      "short_name": "JlamaEmbed",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "This stage uses jlama as an inference machine to download and use the embedding model locally, where it would retrieve the input to the model from a source field, and set the outputs to a destination field. Note that this stage only supports models that have safetensor format and BERT architecture. Another known bug prevents Jlama from loading models due to non-standardized file contents in its downloads. This bug is not addressed in this Jlama version yet. Note that in order to use this stage y",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "model",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "source",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "pathToStoreModel",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "workingMemoryType",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "workingQuantizationType",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "dest",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "deleteModelAfter",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-plugins/lucille-jlama/src/main/java/com/kmwllc/lucille/jlama/stage/JlamaEmbed.java"
+    },
+    "ApplyOCR": {
+      "class_name": "com.kmwllc.lucille.ocr.stage.ApplyOCR",
+      "short_name": "ApplyOCR",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "Applies optical character recognition to images. Additionally supports form extraction using templates. See README for a more detailed explanation.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "lang",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "pathField",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "pagesField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "extractAllDest",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "extractionTemplates",
+          "type": "List",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "pages",
+          "type": "Map<Integer, String",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-plugins/lucille-ocr/src/main/java/com/kmwllc/lucille/ocr/stage/ApplyOCR.java"
+    },
+    "ParquetConnector": {
+      "class_name": "com.kmwllc.lucille.parquet.connector.ParquetConnector",
+      "short_name": "ParquetConnector",
+      "component_type": "connector",
+      "builder_type": "connector",
+      "description": "A connector for processing Parquet files, either locally, or on S3, and publishing Lucille documents from files.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "pathToStorage",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The path to storage you want to traverse for .parquet files."
+        },
+        {
+          "name": "idField",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "The name of a field found in the Parquet files you will process that can be used for Document IDs. Must be found in the file's schema, or an Exception will be thrown."
+        },
+        {
+          "name": "fsUri",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": "A URI for the file system that you want to use (for your pathToStorage)."
+        },
+        {
+          "name": "s3Key",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Your key to AWS S3. Only needed if using S3."
+        },
+        {
+          "name": "s3Secret",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Your secret to AWS S3. Only needed if using S3."
+        },
+        {
+          "name": "limit",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "start",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "The number of rows to skip from the beginning of each parquet file encountered. Defaults to skipping no rows."
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "pipeline",
+        "docIdPrefix",
+        "collapse"
+      ],
+      "source_file": "lucille-plugins/lucille-parquet/src/main/java/com/kmwllc/lucille/parquet/connector/ParquetConnector.java"
+    },
+    "PineconeIndexer": {
+      "class_name": "com.kmwllc.lucille.pinecone.indexer.PineconeIndexer",
+      "short_name": "PineconeIndexer",
+      "component_type": "indexer",
+      "builder_type": "indexer",
+      "description": "PineconeIndexer requires a field in the document to contain embeddings. For documents that do not have embeddings nor embedding field, set up a drop stage with stage conditions in the pipeline before indexing.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "apiKey",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "index",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "namespaces",
+          "type": "Map<String, Object",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        },
+        {
+          "name": "metadataFields",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "mode",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "defaultEmbeddingField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        }
+      ],
+      "default_properties": [],
+      "source_file": "lucille-plugins/lucille-pinecone/src/main/java/com/kmwllc/lucille/pinecone/indexer/PineconeIndexer.java"
+    },
+    "EmitDocsToDeleteByPrefix": {
+      "class_name": "com.kmwllc.lucille.pinecone.stage.EmitDocsToDeleteByPrefix",
+      "short_name": "EmitDocsToDeleteByPrefix",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "This stage collects all records from namespace(s) if their prefix ID matches the ID of the Lucille document marked for deletion. These records are then emitted as Lucille Documents, which are also marked for deletion.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "apiKey",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "deletionMarkerField",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "deletionMarkerFieldValue",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "index",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "dropOriginal",
+          "type": "Boolean",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "addPrefix",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "namespaces",
+          "type": "Map<String, Object",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-plugins/lucille-pinecone/src/main/java/com/kmwllc/lucille/pinecone/stage/EmitDocsToDeleteByPrefix.java"
+    },
+    "TextExtractor": {
+      "class_name": "com.kmwllc.lucille.tika.stage.TextExtractor",
+      "short_name": "TextExtractor",
+      "component_type": "stage",
+      "builder_type": "stage",
+      "description": "This stage uses Apache Tika to perform text and metadata extraction",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "textField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "filePathField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "byteArrayField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "tikaConfigPath",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "metadataPrefix",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "whitelist",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "blacklist",
+          "type": "List[List<String]",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "textContentLimit",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "parseTimeout",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "s3",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        },
+        {
+          "name": "gcp",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        },
+        {
+          "name": "azure",
+          "type": "Object",
+          "required": false,
+          "is_parent": true,
+          "description": ""
+        }
+      ],
+      "default_properties": [
+        "name",
+        "class",
+        "conditions",
+        "conditionPolicy"
+      ],
+      "source_file": "lucille-plugins/lucille-tika/src/main/java/com/kmwllc/lucille/tika/stage/TextExtractor.java"
+    },
+    "VideoFileHandler": {
+      "class_name": "com.kmwllc.lucille.video.VideoFileHandler",
+      "short_name": "VideoFileHandler",
+      "component_type": "fileHandler",
+      "builder_type": "fileHandler",
+      "description": "Extracts video frames using JavaCV and emits one Document per sampled frame. Each emitted document contains PNG-compressed frame bytes and timing/size metadata, along with the original source path and filename.",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "docIdPrefix",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Prefix prepended to all generated document ids."
+        },
+        {
+          "name": "docIdFormat",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "The pattern applied to the filename stem when composing the parent id (a single %s placeholder)."
+        },
+        {
+          "name": "sourceField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field used to store the original file path; defaults to \"source\"."
+        },
+        {
+          "name": "fileNameField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field used to store the leaf filename; defaults to \"file_name\"."
+        },
+        {
+          "name": "frameIndexField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field used to store the zero-based frame index; defaults to \"frame_index\"."
+        },
+        {
+          "name": "frameTimeMsField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field used to store the frame timestamp in milliseconds; defaults to \"frame_time_ms\"."
+        },
+        {
+          "name": "frameTimecodeField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field used to store the human-readable frame timecode; defaults to \"frame_timecode\"."
+        },
+        {
+          "name": "imageWidthField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field used to store the frame width in pixels; defaults to \"image_width\"."
+        },
+        {
+          "name": "imageHeightField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field used to store the frame height in pixels; defaults to \"image_height\"."
+        },
+        {
+          "name": "frameImageField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": "Field used to store the PNG-encoded frame bytes; defaults to \"frame_image\"."
+        },
+        {
+          "name": "frameStride",
+          "type": "Number",
+          "required": false,
+          "is_parent": false,
+          "description": "Emit every Nth video frame; defaults to 1."
+        }
+      ],
+      "default_properties": [
+        "class",
+        "docIdPrefix"
+      ],
+      "source_file": "lucille-plugins/lucille-video/src/main/java/com/kmwllc/lucille/video/VideoFileHandler.java"
+    },
+    "WeaviateIndexer": {
+      "class_name": "com.kmwllc.lucille.weaviate.indexer.WeaviateIndexer",
+      "short_name": "WeaviateIndexer",
+      "component_type": "indexer",
+      "builder_type": "indexer",
+      "description": "",
+      "deprecated": false,
+      "parameters": [
+        {
+          "name": "apiKey",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "host",
+          "type": "String",
+          "required": true,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "className",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "idDestinationName",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        },
+        {
+          "name": "vectorField",
+          "type": "String",
+          "required": false,
+          "is_parent": false,
+          "description": ""
+        }
+      ],
+      "default_properties": [],
+      "source_file": "lucille-plugins/lucille-weaviate/src/main/java/com/kmwllc/lucille/weaviate/indexer/WeaviateIndexer.java"
+    }
+  }
+}

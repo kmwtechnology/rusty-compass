@@ -1618,6 +1618,26 @@ Respond with JSON only. No other text."""
             return "doc_writer"  # Key in intent_routes; maps to content classifier/planner
         return "other"  # Key in intent_routes; maps to "query_evaluator" node
 
+    def _route_after_config_validation(self, state: CustomAgentState) -> str:
+        """Route based on config validation result.
+
+        Returns:
+        - "valid": config passed validation, proceed to response
+        - "retry": config failed, retries remaining, go back to generator
+        - "max_retries": config failed, no retries left, proceed to response with errors
+        """
+        from config import CONFIG_VALIDATION_MAX_RETRIES
+
+        passed = state.get("config_validation_passed", False)
+        attempts = state.get("config_validation_attempts", 0)
+
+        if passed:
+            return "valid"
+        elif attempts <= CONFIG_VALIDATION_MAX_RETRIES:
+            return "retry"
+        else:
+            return "max_retries"
+
     def _route_after_query_evaluator(self, state: CustomAgentState) -> str:
         """Route after query evaluator to retriever.
 
@@ -1887,9 +1907,13 @@ Return ONLY the rewritten query, nothing else."""
 
         # Add Config Builder nodes (Phase 2)
         if ENABLE_CONFIG_BUILDER:
-            from config_builder import config_resolver_node, config_generator_node, config_response_node
+            from config_builder import (
+                config_resolver_node, config_generator_node,
+                config_validator_node, config_response_node,
+            )
             workflow.add_node("config_resolver", lambda state: config_resolver_node(state, self))
             workflow.add_node("config_generator", lambda state: config_generator_node(state, self))
+            workflow.add_node("config_validator", lambda state: config_validator_node(state, self))
             workflow.add_node("config_response", lambda state: config_response_node(state, self))
 
         # Add Documentation Writer nodes (Phase 3)
@@ -1969,10 +1993,19 @@ Return ONLY the rewritten query, nothing else."""
             )
             workflow.add_edge("query_rewriter", "retriever")
 
-        # Config builder edges
+        # Config builder edges (with validation-retry loop)
         if ENABLE_CONFIG_BUILDER:
             workflow.add_edge("config_resolver", "config_generator")
-            workflow.add_edge("config_generator", "config_response")
+            workflow.add_edge("config_generator", "config_validator")
+            workflow.add_conditional_edges(
+                "config_validator",
+                self._route_after_config_validation,
+                {
+                    "valid": "config_response",
+                    "retry": "config_generator",
+                    "max_retries": "config_response",
+                }
+            )
             workflow.add_edge("config_response", END)
 
         # Documentation writer edges
