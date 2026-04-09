@@ -136,6 +136,7 @@ class TestComponentCatalog:
         for param in expected_params:
             assert param in param_names, f"{name} missing param '{param}', has: {param_names}"
 
+    @pytest.mark.skipif(not LUCILLE_DIR.exists(), reason="Lucille source not available")
     def test_catalog_regeneration(self):
         """Verify extract_specs.py produces consistent output."""
         result = subprocess.run(
