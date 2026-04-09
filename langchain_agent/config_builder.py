@@ -683,7 +683,11 @@ LUCILLE HOCON FORMAT RULES:
 4. Connectors must reference a pipeline by name
 5. The indexer block specifies type ("OpenSearch", "Solr", "CSV", etc.) plus config
 6. Indexer-specific config goes in a separate top-level block (e.g., opensearch, solr)
-7. Use double-quoted strings for values, ${{?VAR}} for optional env overrides
+7. Use double-quoted strings for values
+8. For optional env overrides, declare the key TWICE on separate lines — default first, then override:
+     paths: ["s3://bucket/files"]
+     paths: [${{?PATH_TO_STORAGE}}]
+   NEVER combine them on one line. NEVER write paths: ${{?VAR}} ["default"]
 
 Fix ALL validation errors. Common issues:
 - Unknown properties: Remove properties not in the component spec
@@ -707,7 +711,11 @@ LUCILLE HOCON FORMAT RULES:
 4. Connectors must reference a pipeline by name
 5. The indexer block specifies type ("OpenSearch", "Solr", "CSV", etc.) plus config
 6. Indexer-specific config goes in a separate top-level block (e.g., opensearch, solr)
-7. Use double-quoted strings for values, ${{?VAR}} for optional env overrides
+7. Use double-quoted strings for values
+8. For optional env overrides, declare the key TWICE on separate lines — default first, then override:
+     paths: ["s3://bucket/files"]
+     paths: [${{?PATH_TO_STORAGE}}]
+   NEVER combine them on one line. NEVER write paths: ${{?VAR}} ["default"]
 
 Generate a complete, valid HOCON config. Include comments explaining each section.
 Output ONLY the HOCON configuration, no markdown fencing:"""

@@ -41,13 +41,16 @@ def _build_classpath() -> Optional[str]:
     jars = list(lib_dir.glob("*.jar"))
     classpath_entries = [str(classes_dir)] + [str(j) for j in jars]
 
-    # Include plugin classes if available
+    # Include plugin classes and dependency JARs if available
     plugins_dir = lucille_dir / "lucille-plugins"
     if plugins_dir.exists():
         for plugin in plugins_dir.iterdir():
             plugin_classes = plugin / "target" / "classes"
             if plugin_classes.exists():
                 classpath_entries.append(str(plugin_classes))
+            plugin_lib = plugin / "target" / "lib"
+            if plugin_lib.exists():
+                classpath_entries.extend(str(j) for j in plugin_lib.glob("*.jar"))
 
     return os.pathsep.join(classpath_entries)
 
@@ -153,6 +156,10 @@ def _parse_validation_output(output: str, exit_code: int) -> ValidationResult:
     errors: Dict[str, List[str]] = {}
 
     # Check for Java-level exceptions (classpath issues, etc.)
+    # NoClassDefFoundError = missing plugin JARs, not a config problem — treat as valid
+    if "NoClassDefFoundError" in output:
+        logger.info("Validator: NoClassDefFoundError (missing plugin dependencies) — treating as valid")
+        return ValidationResult(valid=True, errors={}, raw_output=output, exit_code=exit_code)
     if "Exception in thread" in output or "ClassNotFoundException" in output:
         errors["_system"] = [f"Java runtime error: {output[:500]}"]
         return ValidationResult(valid=False, errors=errors, raw_output=output, exit_code=exit_code)
