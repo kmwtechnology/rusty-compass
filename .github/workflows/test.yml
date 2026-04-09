@@ -36,6 +36,8 @@ jobs:
           pip install 'psycopg[binary]>=3.3.0' 'psycopg-pool>=3.3.0'
           # Now install remaining dependencies
           pip install -r requirements.txt
+          # Install package as editable (now safe since psycopg is already installed)
+          pip install -e .
           pip install pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
 
       - name: Create test .env
