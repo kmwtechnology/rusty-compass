@@ -30,6 +30,71 @@ LUCILLE_DIR = PROJECT_DIR.parent / "lucille"
 
 
 # ============================================================================
+# Config Validation Routing Tests
+# ============================================================================
+
+class TestConfigValidationRouting:
+    """Tests for _route_after_config_validation() in main.py."""
+
+    def test_route_when_validation_passed(self):
+        """When config passes validation, route to response."""
+        from main import LucilleAgent
+        agent = LucilleAgent()
+
+        state = {
+            "config_validation_passed": True,
+            "config_validation_attempts": 1,
+        }
+        result = agent._route_after_config_validation(state)
+        assert result == "valid"
+
+    def test_route_when_validation_failed_with_retries_remaining(self):
+        """When validation fails but retries remain, route back to generator."""
+        from main import LucilleAgent
+        from config import CONFIG_VALIDATION_MAX_RETRIES
+
+        agent = LucilleAgent()
+
+        # With max_retries=2, attempt 1 should retry
+        state = {
+            "config_validation_passed": False,
+            "config_validation_attempts": 1,
+        }
+        result = agent._route_after_config_validation(state)
+        assert result == "retry", f"Attempt 1 of {CONFIG_VALIDATION_MAX_RETRIES} should retry"
+
+    def test_route_when_validation_failed_at_max_retries(self):
+        """When validation fails at max retries, route to response with errors."""
+        from main import LucilleAgent
+        from config import CONFIG_VALIDATION_MAX_RETRIES
+
+        agent = LucilleAgent()
+
+        # With max_retries=2, attempt 2 should NOT retry (move to max_retries)
+        state = {
+            "config_validation_passed": False,
+            "config_validation_attempts": CONFIG_VALIDATION_MAX_RETRIES,
+        }
+        result = agent._route_after_config_validation(state)
+        assert result == "max_retries", f"Attempt {CONFIG_VALIDATION_MAX_RETRIES} should reach max_retries"
+
+    def test_route_prevents_infinite_retries(self):
+        """Ensure routing logic prevents attempts beyond max_retries."""
+        from main import LucilleAgent
+        from config import CONFIG_VALIDATION_MAX_RETRIES
+
+        agent = LucilleAgent()
+
+        # Attempt beyond max_retries should also return max_retries
+        state = {
+            "config_validation_passed": False,
+            "config_validation_attempts": CONFIG_VALIDATION_MAX_RETRIES + 5,
+        }
+        result = agent._route_after_config_validation(state)
+        assert result == "max_retries"
+
+
+# ============================================================================
 # Component Catalog Tests
 # ============================================================================
 

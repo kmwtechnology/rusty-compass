@@ -1633,7 +1633,7 @@ Respond with JSON only. No other text."""
 
         if passed:
             return "valid"
-        elif attempts <= CONFIG_VALIDATION_MAX_RETRIES:
+        elif attempts < CONFIG_VALIDATION_MAX_RETRIES:
             return "retry"
         else:
             return "max_retries"
