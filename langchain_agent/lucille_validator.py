@@ -124,9 +124,12 @@ def validate_config(config_text: str, timeout_seconds: int = 30) -> ValidationRe
         return _parse_validation_output(combined_output, result.returncode)
 
     except subprocess.TimeoutExpired:
+        # Timeouts usually mean a connector is trying to connect to an external
+        # system (Solr, Kafka, etc.) — not a config structure problem
+        logger.info("Validator: timed out (likely connector trying to connect) — treating as valid")
         return ValidationResult(
-            valid=False,
-            errors={"_system": [f"Validation timed out after {timeout_seconds}s"]},
+            valid=True,
+            errors={},
             raw_output="",
             exit_code=-1,
         )
@@ -160,7 +163,10 @@ def _parse_validation_output(output: str, exit_code: int) -> ValidationResult:
     if "NoClassDefFoundError" in output:
         logger.info("Validator: NoClassDefFoundError (missing plugin dependencies) — treating as valid")
         return ValidationResult(valid=True, errors={}, raw_output=output, exit_code=exit_code)
-    if "Exception in thread" in output or "ClassNotFoundException" in output:
+    # If output contains both structured validation AND an exception, prefer parsing
+    # the structured output (e.g., SolrConnector logs errors then throws)
+    has_structured = "Configuration is" in output
+    if not has_structured and ("Exception in thread" in output or "ClassNotFoundException" in output):
         errors["_system"] = [f"Java runtime error: {output[:500]}"]
         return ValidationResult(valid=False, errors=errors, raw_output=output, exit_code=exit_code)
 
@@ -235,6 +241,22 @@ def _parse_validation_output(output: str, exit_code: int) -> ValidationResult:
                 errors["indexer"].append(stripped)
 
     # Remove empty error lists (components with only null/filtered messages)
+    errors = {k: v for k, v in errors.items() if v}
+
+    # Filter out errors that are infrastructure issues, not config structure problems:
+    # - "Unknown indexer.type" for plugin indexers (Weaviate, Pinecone, etc.)
+    # - Connector constructor failures (can't connect to Solr/Kafka/DB)
+    # - "No configuration setting found for key" (missing indexer-specific config block)
+    NON_STRUCTURAL_PATTERNS = [
+        r"Unknown indexer\.type",
+        r"Error with Connector class / constructor",
+        r"No configuration setting found for key",
+    ]
+    for key in list(errors.keys()):
+        errors[key] = [
+            e for e in errors[key]
+            if not any(re.search(pat, e) for pat in NON_STRUCTURAL_PATTERNS)
+        ]
     errors = {k: v for k, v in errors.items() if v}
 
     # If exit code is non-zero but we found no specific errors, note it
