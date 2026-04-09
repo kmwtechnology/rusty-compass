@@ -32,6 +32,9 @@ jobs:
         run: |
           cd langchain_agent
           pip install --upgrade pip
+          # Install psycopg first (needed by langgraph-checkpoint-postgres at build time)
+          pip install 'psycopg[binary]>=3.3.0' 'psycopg-pool>=3.3.0'
+          # Now install remaining dependencies
           pip install -r requirements.txt
           pip install pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
 
