@@ -444,9 +444,14 @@ Return ONLY valid JSON with this structure:
   "description": "Brief description of what this pipeline does"
 }}
 
-Use actual Lucille class names when possible (e.g. CSVConnector, OpenSearchIndexer, CopyFields).
-If the user mentions a generic concept (e.g. "CSV input"), map it to the closest Lucille class.
-If unsure, include your best guess and note it.
+You MUST use exact Lucille class names from this list:
+
+CONNECTORS: {', '.join(s['short_name'] for s in _COMPONENT_CATALOG.values() if s.get('component_type') == 'connector')}
+STAGES: {', '.join(s['short_name'] for s in _COMPONENT_CATALOG.values() if s.get('component_type') == 'stage')}
+INDEXERS: {', '.join(s['short_name'] for s in _COMPONENT_CATALOG.values() if s.get('component_type') == 'indexer')}
+
+Important: For S3/Azure/GCP file ingestion, use FileConnector (it supports cloud storage via config options).
+Map the user's description to the closest class name from the lists above.
 
 JSON only:"""
 
