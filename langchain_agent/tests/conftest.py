@@ -8,6 +8,12 @@ Provides mock fixtures for external dependencies:
 - Configuration defaults
 """
 
+import sys
+from pathlib import Path
+
+# Add langchain_agent directory to sys.path for imports
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import pytest
 from unittest.mock import Mock, MagicMock, AsyncMock, patch
 from datetime import datetime

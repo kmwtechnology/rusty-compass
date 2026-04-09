@@ -147,6 +147,18 @@ echo ""
 # Start frontend dev server
 echo "🎨 Starting frontend..."
 
+# Check if npm dependencies are installed
+if [ ! -d "$PROJECT_DIR/web/node_modules" ]; then
+    echo "   Installing npm dependencies..."
+    cd "$PROJECT_DIR/web"
+    npm install > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "❌ npm install failed"
+        exit 1
+    fi
+    cd "$PROJECT_DIR"
+fi
+
 if [ -f "$PROJECT_DIR/.frontend.pid" ]; then
     PID=$(cat "$PROJECT_DIR/.frontend.pid")
     if kill -0 "$PID" 2>/dev/null; then

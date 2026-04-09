@@ -1,26 +1,33 @@
 # Rusty Compass Test Suite
 
-Comprehensive testing framework organized by test scope and purpose.
+Comprehensive test coverage for all three operating modes: RAG Q&A, Config Builder, and Documentation Writer.
 
 ## Directory Structure
 
 ```
 tests/
-├── unit/                          # Component unit tests (no external dependencies)
-│   ├── test_reranker.py          # Reranker validation (score bounds, model loading)
-│   ├── test_vector_store.py      # Vector store & hybrid search (alpha, k params)
-│   ├── test_auth.py              # API authentication (keys, origins, timing attacks)
-│   └── test_link_verifier.py     # Link verification (URL validation, caching)
+├── config_builder/               # Config Builder tests (35 unit + 20 stress tests)
+│   ├── test_config_builder.py    # Catalog, resolver, validator, few-shot tests
+│   ├── test_random_configs.py    # 20 stress tests across all components
+│   ├── test_valid.conf           # Valid config fixture
+│   ├── test_invalid.conf         # Invalid config fixture
+│   └── README.md                 # Config builder testing guide
 │
-├── integration/                   # Multi-component integration tests (requires services)
-│   ├── test_intent_routing.py    # Intent classification (104 tests, 95%+ accuracy)
-│   ├── test_graph_error_handling.py  # Error propagation (graph, timeouts, state)
+├── unit/                         # Component unit tests (no external dependencies)
+│   ├── test_reranker.py          # Reranker model + score validation
+│   ├── test_vector_store.py      # Hybrid search (alpha, k params)
+│   ├── test_auth.py              # API authentication + security
+│   └── test_link_verifier.py     # URL validation + caching
+│
+├── integration/                  # Multi-component integration tests (requires services)
+│   ├── test_intent_routing.py    # Intent classification (95%+ accuracy)
+│   ├── test_graph_error_handling.py  # Error propagation + recovery
 │   └── test_pipeline_flow.py     # End-to-end pipeline execution
 │
 ├── e2e/                          # End-to-end deployment tests
-│   └── test_deployment.py        # Health checks, service connectivity, config validation
+│   └── test_deployment.py        # Health checks + service validation
 │
-├── conftest.py                   # Shared pytest fixtures and configuration
+├── conftest.py                   # Shared pytest fixtures
 └── README.md                     # This file
 ```
 
@@ -29,36 +36,48 @@ tests/
 ### All Tests
 ```bash
 cd langchain_agent
-PYTHONPATH=. .venv/bin/pytest tests/ -v
-```
-
-### By Scope
-
-```bash
-# Unit tests only (fast, ~0.5s)
-PYTHONPATH=. .venv/bin/pytest tests/unit/ -v
-
-# Integration tests (requires services, ~5-30s)
-PYTHONPATH=. .venv/bin/pytest tests/integration/ -v
-
-# E2E tests (requires deployment, ~10-60s)
-PYTHONPATH=. .venv/bin/pytest tests/e2e/ -v
+source .venv/bin/activate
+pytest tests/ -v
 ```
 
 ### By Component
 
 ```bash
-# Reranker validation only
-PYTHONPATH=. .venv/bin/pytest tests/unit/test_reranker.py -v
+# Config Builder (fast, unit tests only)
+pytest tests/config_builder/ -v -k "not live"
 
-# Vector store and hybrid search
-PYTHONPATH=. .venv/bin/pytest tests/unit/test_vector_store.py -v
+# Config Builder stress tests (requires GOOGLE_API_KEY)
+python tests/config_builder/test_random_configs.py        # all 20
+python tests/config_builder/test_random_configs.py 1 5 12  # specific tests
+
+# Core unit tests (fast, ~1s)
+pytest tests/unit/ -v
 
 # Intent classification (104 tests)
-PYTHONPATH=. .venv/bin/pytest tests/integration/test_intent_routing.py -v
+pytest tests/integration/test_intent_routing.py -v
 
 # Full pipeline E2E
-PYTHONPATH=. .venv/bin/pytest tests/integration/test_pipeline_flow.py -v
+pytest tests/integration/test_pipeline_flow.py -v
+
+# All integration tests (requires services)
+pytest tests/integration/ -v
+
+# E2E deployment tests (requires deployment)
+pytest tests/e2e/ -v
+```
+
+### By Scope
+
+```bash
+# Fast tests only (unit + config builder, no services)
+pytest tests/config_builder/ tests/unit/ -v -k "not live"
+
+# Medium tests (integration, requires PostgreSQL + OpenSearch)
+./scripts/start.sh
+pytest tests/integration/ -v
+
+# Full suite (integration + E2E, requires deployment)
+pytest tests/ -v
 ```
 
 ### With Coverage
@@ -82,6 +101,33 @@ PYTHONPATH=. .venv/bin/pytest tests/e2e/ -m smoke -v
 ```
 
 ## Test Categories
+
+### Config Builder Tests (`tests/config_builder/`)
+
+**Purpose**: Validate Lucille HOCON config generation, component resolution, and validation
+
+| Test Type | Count | Coverage |
+|-----------|-------|----------|
+| Catalog Tests | 9 | 88-component catalog, generation, spot-checks |
+| Catalog Lookup | 10 | Case-insensitive resolution, 10 parametrized cases |
+| Few-Shot Selection | 4 | Example matching by component overlap |
+| Lucille Validator | 2 | Valid/invalid config detection via Java CLI |
+| Validator Parser | 4 | Error parsing, edge cases (null, NoClassDef, parse errors) |
+| **Validation Routing** | **4** | **Conditional routing paths (new)** |
+| **Stress Tests** | **20** | **Diverse pipelines: 19/20 pass (95%)** |
+
+**Run Time**: ~2 seconds (unit) + variable (stress tests)
+**Dependencies**: Lucille (for validator), GOOGLE_API_KEY (for stress tests)
+**Best For**: Validating config generation, testing component resolution accuracy
+
+```bash
+# Unit tests only
+python -m pytest tests/config_builder/ -v -k "not live"
+
+# Stress tests (requires GOOGLE_API_KEY)
+python tests/config_builder/test_random_configs.py
+python tests/config_builder/test_random_configs.py 1 5 12  # specific tests
+```
 
 ### Unit Tests (`tests/unit/`)
 
@@ -124,19 +170,33 @@ PYTHONPATH=. .venv/bin/pytest tests/e2e/ -m smoke -v
 **Dependencies**: Deployed Cloud Run service, OpenSearch, PostgreSQL
 **Best For**: Post-deployment validation, smoke tests, production verification
 
-## Test Results Summary
+## Test Coverage Summary
 
 ```
-Total Tests: 248
-├── Unit Tests: 78 (fast, no dependencies)
-├── Integration Tests: 145 (requires services)
-└── E2E Tests: 25 (requires deployment)
+Total: 283+ tests across all modules
+
+Config Builder:
+├── 35 Unit Tests
+│   ├── Catalog generation + spot-checks
+│   ├── Case-insensitive catalog lookup
+│   ├── Few-shot example selection
+│   ├── HOCON validation (valid/invalid configs)
+│   ├── Validator error parser
+│   └── Validation routing (new)
+└── 20 Stress Tests (95% pass rate)
+    └── Diverse pipelines: Parquet→Pinecone, Kafka→OpenSearch, RSS→Elasticsearch, etc.
+
+RAG & Core:
+├── 78+ Unit Tests (fast, <1s total)
+├── 145+ Integration Tests (requires services)
+└── 25+ E2E Tests (requires deployment)
 
 Status:
-✅ 24 Unit tests passing
-✅ 104 Intent routing tests passing (95%+ accuracy)
-⏭️ 145 Integration tests (skipped without full stack)
-⏭️ 25 E2E tests (skipped without deployment)
+✅ 35 Config builder tests passing
+✅ 20 Config builder stress tests (95% pass rate)
+✅ 24+ Core unit tests passing
+✅ 104 Intent classification tests (95%+ accuracy)
+⏭️ Integration/E2E tests (skipped without full stack/deployment)
 ```
 
 ## Setting Up for Testing
@@ -170,33 +230,57 @@ See `.github/workflows/test.yml` for configuration.
 ### ModuleNotFoundError: No module named 'X'
 
 ```bash
-# Solution: Always set PYTHONPATH
-PYTHONPATH=/Users/kevin/github/personal/rusty-compass/langchain_agent .venv/bin/pytest tests/
+# Solution: Ensure you're in the langchain_agent directory and venv is activated
+cd langchain_agent
+source .venv/bin/activate
+pytest tests/
 ```
 
-### ImportError: cannot import name 'XyzError'
+### ImportError: cannot import name 'Exception'
 
 ```bash
-# Solution: Add missing exception to exceptions.py (see MEMORY.md)
-# The exceptions.py file must have all custom exception classes
+# Solution: Add missing exception to exceptions.py
+# The exceptions.py file must define all custom exception classes
+```
+
+### Config builder tests skipped ("Requires GOOGLE_API_KEY")
+
+```bash
+# Solution: Set GOOGLE_API_KEY for stress tests
+export GOOGLE_API_KEY=your-key-here
+python tests/config_builder/test_random_configs.py
+
+# Unit tests work without it
+pytest tests/config_builder/ -v -k "not live"
+```
+
+### "Lucille validator not available"
+
+```bash
+# Solution: Build Lucille with Maven
+cd ../lucille
+mvn package -DskipTests
+cd ../rusty-compass/langchain_agent
 ```
 
 ### Tests timeout or hang
 
 ```bash
-# Solution: Ensure services are running
+# Solution: Ensure services are running (for integration tests)
+./scripts/start.sh
+
+# Verify connectivity
 docker compose ps
 curl http://localhost:9200/_cluster/health  # OpenSearch
-curl http://localhost:5432                  # PostgreSQL
 ```
 
-### Skipped tests with "Requires full LangGraph setup"
+### Validator can't find Java classes
 
 ```bash
-# Solution: This is expected - some tests need async runtime
-# To run integration tests:
-./scripts/start.sh  # Start all services
-PYTHONPATH=. .venv/bin/pytest tests/integration/ -v
+# Solution: Rebuild Lucille with full Maven build
+cd ../lucille
+mvn clean package
+# Then rebuild config builder and retry
 ```
 
 ## Writing New Tests

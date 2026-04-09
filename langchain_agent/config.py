@@ -471,6 +471,15 @@ CHECKPOINT_COMPACTION_DAYS = 7
 # Enable Config Builder mode (generates Lucille HOCON pipeline configs)
 ENABLE_CONFIG_BUILDER = os.getenv("ENABLE_CONFIG_BUILDER", "true").lower() == "true"
 
+# Enable Config Validation (validates generated configs via Lucille's Java validator)
+ENABLE_CONFIG_VALIDATION = os.getenv("ENABLE_CONFIG_VALIDATION", "true").lower() == "true"
+
+# Max retry attempts when config validation fails (0 = no retries, just report errors)
+CONFIG_VALIDATION_MAX_RETRIES = int(os.getenv("CONFIG_VALIDATION_MAX_RETRIES", "2"))
+
+# Timeout for Java validator subprocess (seconds)
+CONFIG_VALIDATION_TIMEOUT = int(os.getenv("CONFIG_VALIDATION_TIMEOUT", "30"))
+
 # Enable Documentation Writer mode (generates multi-section documentation)
 ENABLE_DOC_WRITER = os.getenv("ENABLE_DOC_WRITER", "true").lower() == "true"
 

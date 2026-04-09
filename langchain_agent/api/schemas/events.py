@@ -568,6 +568,18 @@ class ConfigGeneratedEvent(BaseEvent):
     validation_notes: List[str] = []
 
 
+class ConfigValidationEvent(BaseEvent):
+    """Emitted when config validation completes."""
+
+    type: Literal["config_validation"] = "config_validation"
+    node: Literal["config_validator"] = "config_validator"
+    valid: bool
+    attempt: int
+    error_count: int = 0
+    errors: Dict[str, List[str]] = {}
+    will_retry: bool = False
+
+
 # ============================================================================
 # DOCUMENTATION WRITER EVENTS
 # ============================================================================

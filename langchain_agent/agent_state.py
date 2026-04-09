@@ -84,6 +84,9 @@ class CustomAgentState(TypedDict, total=False):
     config_components: Optional[List[dict]]  # Resolved component specs
     config_output: Optional[str]  # Generated HOCON config
     config_validation_notes: Optional[List[str]]  # Validation issues/notes
+    config_validation_attempts: Optional[int]  # Retry counter (0, 1, 2, ...)
+    config_validation_errors: Optional[dict]  # {component: [errors]} from validator
+    config_validation_passed: Optional[bool]  # True if validator says valid
 
     # Documentation writer state (Phase 3)
     doc_outline: Optional[List[dict]]  # Planned sections
