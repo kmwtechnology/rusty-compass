@@ -4,7 +4,7 @@
 #
 # This script:
 #   1. Starts Cloud SQL Auth Proxy to connect to the Cloud SQL instance
-#   2. Runs setup.py to create checkpoint and metadata tables
+#   2. Runs init_db.py to create checkpoint and metadata tables
 #   3. Ingests Lucille documentation into hosted OpenSearch
 #   4. Shuts down the proxy
 #
@@ -191,6 +191,18 @@ DB_PASSWORD=$(gcloud secrets versions access latest \
     --project="$PROJECT_ID" 2>/dev/null) || \
     err "Could not retrieve DB password from Secret Manager. Was deploy.sh run first?"
 
+log "Retrieving OpenSearch credentials from Secret Manager..."
+
+GCP_OPENSEARCH_USER=$(gcloud secrets versions access latest \
+    --secret=rusty-compass-opensearch-user \
+    --project="$PROJECT_ID" 2>/dev/null) || \
+    err "Could not retrieve OpenSearch user from Secret Manager."
+
+GCP_OPENSEARCH_PASSWORD=$(gcloud secrets versions access latest \
+    --secret=rusty-compass-opensearch-password \
+    --project="$PROJECT_ID" 2>/dev/null) || \
+    err "Could not retrieve OpenSearch password from Secret Manager."
+
 # ============================================================================
 # STEP 3: START CLOUD SQL AUTH PROXY
 # ============================================================================
@@ -242,9 +254,12 @@ export POSTGRES_HOST="127.0.0.1"
 export POSTGRES_PORT="$PROXY_PORT"
 export POSTGRES_PASSWORD="$DB_PASSWORD"
 
-# Override OpenSearch settings for GCP hosted instance
+# Override OpenSearch settings for GCP hosted instance with credentials from Secret Manager
+# (These override the .env file values)
 export OPENSEARCH_HOST="34.138.97.13"
 export OPENSEARCH_PORT="9200"
+export OPENSEARCH_USER="$GCP_OPENSEARCH_USER"
+export OPENSEARCH_PASSWORD="$GCP_OPENSEARCH_PASSWORD"
 export OPENSEARCH_USE_SSL="true"
 export OPENSEARCH_VERIFY_CERTS="false"
 
@@ -254,7 +269,7 @@ if $SKIP_DOCS; then
 fi
 
 cd "$PROJECT_DIR"
-python setup.py $SETUP_ARGS
+python init_db.py $SETUP_ARGS
 
 echo ""
 
