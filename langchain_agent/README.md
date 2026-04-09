@@ -1,10 +1,13 @@
-# Rusty Compass - Multi-Capability Lucille Agent
+# Rusty Compass - Backend Implementation
 
-A production-grade LangGraph agent with three specialized capabilities:
-**RAG Q&A**, **Config Builder**, and **Documentation Writer**. All modes share
-the same data layer, LangGraph graph, and frontend. Uses Google Gemini AI
-for LLM inference and embeddings, PostgreSQL + PGVector for vector storage,
-and sophisticated retrieval with hybrid search and cross-encoder reranking.
+Backend implementation of the Rusty Compass multi-capability LangGraph agent. See [../README.md](../README.md) for the complete project overview.
+
+This directory contains:
+- **LangGraph Pipeline** — Three operating modes (RAG Q&A, Config Builder, Documentation Writer)
+- **FastAPI Backend** — REST API with WebSocket streaming
+- **React Frontend** — Web UI with observability panel
+- **Data Layer** — OpenSearch (hybrid search) + PostgreSQL (conversation state)
+- **Integration** — Google Gemini AI, Lucille validator, vector embeddings
 
 **Capabilities**:
 
@@ -91,13 +94,254 @@ python ingest_lucille_docs.py
 ./scripts/stop.sh
 ```
 
+This stops the backend, frontend, and Docker containers (PostgreSQL, OpenSearch, OpenSearch Dashboards).
+
 ### Teardown (Complete Removal)
 
-To completely remove all installed components and data:
+To completely remove all installed components, data, and containers:
 
 ```bash
 ./scripts/teardown.sh
 ```
+
+This removes:
+- Python virtual environment
+- Frontend node_modules
+- Docker containers and volumes
+- Local database and vector store
+- All cached files
+
+**Warning**: This is non-recoverable. Use with caution in production.
+
+---
+
+## Project Structure
+
+```
+langchain_agent/
+├── api/                          # FastAPI backend
+│   ├── main.py                   # Routes, WebSocket, server startup
+│   └── schemas/events.py         # Observable event types
+│
+├── main.py                       # LangGraph agent definition
+├── config.py                     # Configuration constants
+├── agent_state.py                # LangGraph state definition
+│
+├── config_builder.py             # Config generation + validation
+├── lucille_validator.py          # Lucille HOCON config validator
+├── content_generators.py         # Documentation writers
+├── vector_store.py               # Hybrid search (vector + BM25)
+├── reranker.py                   # LLM-based reranking
+│
+├── scripts/                      # Deployment and setup automation
+│   ├── setup.sh                  # One-time setup
+│   ├── start.sh                  # Start services
+│   ├── stop.sh                   # Stop services
+│   ├── deploy.sh                 # Deploy to GCP Cloud Run
+│   ├── gcp-init.sh              # Initialize GCP resources
+│   └── extract_specs.py          # Extract Lucille component specs
+│
+├── data/                         # Static data
+│   └── component_catalog.json    # 88-component Lucille catalog
+│
+├── tests/                        # Test suite
+│   ├── config_builder/           # Config builder tests (35 unit + 20 stress)
+│   ├── unit/                     # Component unit tests
+│   ├── integration/              # Multi-component integration tests
+│   └── e2e/                      # Deployment validation tests
+│
+├── web/                          # React frontend
+│   ├── src/                      # React components
+│   ├── public/                   # Static assets
+│   └── package.json              # Frontend dependencies
+│
+├── requirements.txt              # Python dependencies
+├── requirements-dev.txt          # Development tools (pytest, etc.)
+├── .env.example                  # Environment configuration template
+└── README.md                     # This file
+```
+
+---
+
+## Key Components
+
+### Config Builder
+
+Generates valid Lucille HOCON pipeline configurations from natural language.
+
+```text
+User: "CSV to OpenSearch with field renaming"
+  ↓
+Catalog Resolution (CSVConnector, RenameFields, OpenSearchIndexer)
+  ↓
+Few-Shot Selection (opensearch_ingest example)
+  ↓
+LLM Generation (Gemini)
+  ↓
+Lucille Validation (Java validator)
+  ↓
+Response (valid config + validation status)
+```
+
+**Features:**
+- 88-component catalog with deterministic resolution
+- 5 curated few-shot example configs
+- Lucille's own Java validator for config syntax checking
+- Up to 2 retries when validation fails
+- 95% pass rate on diverse config combinations
+
+See [../README.md#config-builder](../README.md#config-builder) for detailed documentation.
+
+### Hybrid Search
+
+Vector + full-text search with Reciprocal Rank Fusion (RRF) and LLM reranking.
+
+```
+Query
+  ↓
+Embedding (Gemini) + BM25 Tokenization
+  ↓
+Vector Search (OpenSearch knn_vector) + Full-Text Search (BM25)
+  ↓
+RRF Fusion (combines rankings)
+  ↓
+LLM Reranking (Gemini scores relevance)
+  ↓
+Final Results (top K documents)
+```
+
+**Features:**
+- Dynamic alpha parameter (lexical vs semantic balance)
+- Reciprocal Rank Fusion for balanced results
+- Gemini Flash Lite LLM-as-reranker
+- Cached embeddings for performance
+- Query expansion for follow-up questions
+
+### Intent Classification
+
+5 intent types with keyword fast-path + LLM fallback.
+
+| Intent | Handler | Example |
+|--------|---------|---------|
+| `question` | RAG Q&A | "What is a Lucille connector?" |
+| `config_request` | Config Builder | "Build a CSV to OpenSearch pipeline" |
+| `documentation_request` | Documentation Writer | "Write a blog post about connectors" |
+| `summary` | Conversation Summary | "Summarize our conversation" |
+| `follow_up` | Query Expansion | "How about using Pinecone instead?" |
+
+95%+ accuracy, typically <100ms classification time.
+
+---
+
+## Testing
+
+Full test coverage with 35+ unit tests, 20 stress tests, and integration tests.
+
+### Quick Test
+
+```bash
+# Unit tests (no dependencies, ~1s)
+source .venv/bin/activate
+python -m pytest tests/config_builder/ -v -k "not live"
+```
+
+### Full Test Suite
+
+```bash
+# Start services first
+./scripts/start.sh
+
+# Run all tests
+source .venv/bin/activate
+python -m pytest tests/ -v
+```
+
+See [tests/README.md](tests/README.md) for comprehensive testing documentation.
+
+---
+
+## Deployment
+
+### Local Development
+
+Default setup with Docker + Python + Node:
+
+```bash
+./scripts/setup.sh   # ~10-20 min, one-time
+./scripts/start.sh   # Starts everything
+# Visit http://localhost:5173
+```
+
+### GCP Cloud Run
+
+Production deployment with auto-scaling:
+
+```bash
+./scripts/deploy.sh --project <GCP_PROJECT_ID>
+./scripts/gcp-init.sh --project <GCP_PROJECT_ID>  # One-time DB setup
+```
+
+Features:
+- Auto-scales to zero (cost-efficient)
+- Cloud SQL for PostgreSQL
+- Secret Manager for credentials
+- Cloud Run for containerized backend
+- Artifact Registry for images
+
+See [../README.md#deployment](../README.md#deployment) for detailed instructions.
+
+---
+
+## Environment Configuration
+
+Copy `.env.example` to `.env` and adjust:
+
+```bash
+cp .env.example .env
+# Edit .env with your credentials:
+# - GOOGLE_API_KEY (required)
+# - API_KEY (secure random key)
+# - POSTGRES_* (if not using Docker defaults)
+# - LUCILLE_PROJECT_DIR (path to Lucille, for config builder)
+```
+
+Key variables:
+- `GOOGLE_API_KEY` — Google Gemini API key (required)
+- `ENABLE_CONFIG_VALIDATION` — Toggle validator on/off
+- `CONFIG_VALIDATION_MAX_RETRIES` — Retry attempts (default: 2)
+- `LUCILLE_PROJECT_DIR` — Path to Lucille source (for config builder)
+- `LLM_MODEL` — LLM to use (default: gemini-2.5-flash)
+
+---
+
+## Troubleshooting
+
+**Port already in use**
+```bash
+# Find and kill process on port 8000 (backend)
+lsof -i :8000 | awk 'NR>1 {print $2}' | xargs kill -9
+```
+
+**Python dependencies out of sync**
+```bash
+source .venv/bin/activate
+pip install --upgrade -r requirements.txt
+```
+
+**Frontend won't start (npm issue)**
+```bash
+# start.sh auto-installs, but if needed:
+cd web && npm install && cd ..
+```
+
+**Lucille validator not found**
+```bash
+# Build Lucille
+cd ../lucille && mvn package -DskipTests
+cd ../rusty-compass/langchain_agent && ./scripts/start.sh
+```
+
+See [../README.md#troubleshooting](../README.md#troubleshooting) for more issues.
 
 This removes:
 
