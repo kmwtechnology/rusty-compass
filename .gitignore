@@ -212,5 +212,8 @@ langchain_agent/chroma_db/chroma.sqlite3
 langchain_agent/.claude/
 CLAUDE.md
 
+# Validator artifacts (CSVIndexer creates these during validation)
+output.csv
+
 # Lucille directory
 lucille/
