@@ -108,7 +108,9 @@ flowchart TB
 ```text
 intent_classifier
   ├── question/follow_up → query_expansion → query_evaluator → retriever → alpha_refiner → agent
-  ├── config_request     → config_resolver → config_generator → config_response
+  ├── config_request     → config_resolver → config_generator → config_validator ─→ config_response
+  │                            ↑                                    │
+  │                            └──── invalid (≤2 retries) ──────────┘
   ├── documentation_request → content_type_classifier
   │     ├── social_post         → social_content_generator
   │     ├── blog_post           → blog_content_generator
@@ -134,6 +136,58 @@ intent_classifier
 When a documentation request is missing format or topic, code-based
 vagueness detection identifies what's missing and asks for clarification
 before proceeding.
+
+### Config Builder
+
+The config builder generates valid Lucille HOCON pipeline configurations
+from natural language using a four-node pipeline with a validation-retry
+loop:
+
+```text
+config_resolver → config_generator → config_validator ──valid──→ config_response
+                       ↑                    │
+                       └──invalid (≤2)──────┘
+```
+
+**Component Catalog** (`data/component_catalog.json`): 88 components
+(66 stages, 10 connectors, 7 indexers) extracted from Lucille's Java
+`Spec` definitions by `scripts/extract_specs.py`. The resolver uses this
+catalog for deterministic, case-insensitive lookups with 100% accuracy
+before falling back to vector store search.
+
+**Few-Shot Examples**: 5 curated real Lucille configs (CSV-to-Solr,
+S3-to-OpenSearch, DB-to-OpenSearch, etc.) are injected into the
+generation prompt, selected by component overlap with the user's request.
+
+**Lucille Validator Integration** (`lucille_validator.py`): Generated
+configs are validated by Lucille's own `Runner.runInValidationMode()` via
+Java subprocess. The validator runs standalone (no Solr/OpenSearch
+connections needed). If validation fails, errors are fed back to the LLM
+for correction, up to 2 retries.
+
+| Feature | Detail |
+| ------- | ------ |
+| Component catalog | 88 components from Java `Spec` definitions |
+| Spec resolution | Catalog-first, vector store fallback |
+| Few-shot examples | 5 configs matched by component overlap |
+| Validation | Lucille Java validator (standalone, bypass mode) |
+| Retry loop | Up to 2 retries with error context |
+| Graceful fallback | Works without Java (validation skipped) |
+
+**Regenerating the catalog** (after Lucille adds new components):
+
+```bash
+cd langchain_agent
+python scripts/extract_specs.py
+```
+
+**Running config builder tests**:
+
+```bash
+cd langchain_agent && source .venv/bin/activate
+python -m pytest tests/config_builder/ -v -k "not live"   # unit tests (~1s)
+python -m pytest tests/config_builder/ -v                   # includes live LLM tests
+```
 
 ## Tech Stack
 
@@ -197,8 +251,10 @@ The web UI includes a real-time observability panel that shows:
 - **Hybrid Search Results** - Vector + full-text scores, RRF fusion
 - **Reranker Results** - Per-document relevance scores
 - **Alpha Refinement** - Retry strategy when initial search scores low
-- **Config Resolver** - Per-component resolution details (spec-matched
+- **Config Resolver** - Per-component resolution details (catalog-matched
   vs search-fallback), class names, and descriptions
+- **Config Validation** - Lucille validator results, retry attempts,
+  error details per component
 - **Token Streaming** - Live generation progress with timing
 
 Each pipeline node shows execution time, status (running/complete/skipped),
@@ -210,7 +266,7 @@ and expandable detail cards.
 | ----------- | ------------- |
 | **Intent Classification** | 5-intent detection (95%+ accuracy) using keyword fast-path + LLM fallback |
 | **Content Type Classification** | 5 content types with code-based vagueness detection for missing format/topic |
-| **Config Builder** | Generates HOCON pipeline configurations from natural language with component spec matching |
+| **Config Builder** | Generates HOCON pipeline configs with 88-component catalog, few-shot examples, and Java validator loop |
 | **Documentation Writer** | Multi-pass content generation with per-type temperature and retrieval strategies |
 | **Reciprocal Rank Fusion** | Combines vector and full-text rankings: `score = Σ 1/(rank + k)` where k=60 |
 | **LLM-Based Reranking** | Gemini Flash Lite scores query-document relevance (0.0-1.0) |
@@ -235,7 +291,8 @@ rusty-compass/
 │   │   ├── deploy.sh             # GCP Cloud Run deployment (builds Docker + deploys)
 │   │   ├── gcp-init.sh           # Cloud SQL + OpenSearch initialization (one-time)
 │   │   ├── gcp-teardown.sh       # Remove all GCP resources
-│   │   └── teardown.sh           # Full local cleanup
+│   │   ├── teardown.sh           # Full local cleanup
+│   │   └── extract_specs.py      # Extract Lucille component SPEC definitions → catalog
 │   ├── api/                      # FastAPI backend
 │   │   ├── main.py               # API routes + WebSocket
 │   │   ├── schemas/events.py     # Observable event models (Pydantic)
@@ -246,7 +303,10 @@ rusty-compass/
 │   ├── main.py                   # LangGraph agent + all graph nodes
 │   ├── config.py                 # Configuration constants
 │   ├── content_generators.py     # 5 content type generators + classifier
-│   ├── config_builder.py         # Config Builder (HOCON generation)
+│   ├── config_builder.py         # Config Builder (catalog + few-shot + validator loop)
+│   ├── lucille_validator.py      # Python wrapper for Lucille Java config validator
+│   ├── data/
+│   │   └── component_catalog.json  # 88-component catalog (generated by extract_specs.py)
 │   ├── vector_store.py           # Hybrid search (vector + full-text + RRF)
 │   ├── reranker.py               # LLM-based reranking (Gemini)
 │   ├── agent_state.py            # LangGraph state TypedDict
