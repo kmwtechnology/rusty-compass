@@ -36,8 +36,6 @@ jobs:
           pip install 'psycopg[binary]>=3.3.0' 'psycopg-pool>=3.3.0'
           # Now install remaining dependencies
           pip install -r requirements.txt
-          # Install package as editable (now safe since psycopg is already installed)
-          pip install -e .
           pip install pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
 
       - name: Create test .env
@@ -51,17 +49,17 @@ jobs:
       - name: Run Config Builder Tests
         run: |
           cd langchain_agent
-          pytest tests/config_builder/ -v -k "not live" --tb=short --timeout=30
+          PYTHONPATH=. pytest tests/config_builder/ -v -k "not live" --tb=short --timeout=30
 
       - name: Run Unit Tests
         run: |
           cd langchain_agent
-          pytest tests/unit/ -v --tb=short --timeout=30
+          PYTHONPATH=. pytest tests/unit/ -v --tb=short --timeout=30
 
       - name: Generate coverage report
         run: |
           cd langchain_agent
-          pytest tests/config_builder/ tests/unit/ -v -k "not live" \
+          PYTHONPATH=. pytest tests/config_builder/ tests/unit/ -v -k "not live" \
             --cov=. --cov-report=xml --cov-report=term-missing || true
         continue-on-error: true
 
