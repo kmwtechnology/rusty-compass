@@ -15,38 +15,9 @@ on:
       - 'langchain_agent/**'
 
 jobs:
-  test-backend:
-    name: Backend Tests
+  test-config-builder:
+    name: Config Builder & Unit Tests
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: rusty_compass_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-      opensearch:
-        image: opensearchproject/opensearch:2.11.0
-        env:
-          discovery.type: single-node
-          OPENSEARCH_INITIAL_ADMIN_PASSWORD: TestPassword123!
-          OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
-        options: >-
-          --health-cmd "curl -s http://localhost:9200 > /dev/null || exit 1"
-          --health-interval 10s
-          --health-timeout 15s
-          --health-retries 10
-        ports:
-          - 9200:9200
 
     steps:
       - uses: actions/checkout@v4
@@ -69,14 +40,6 @@ jobs:
           cd langchain_agent
           cat > .env.test << EOF
           GOOGLE_API_KEY=test-key-12345
-          POSTGRES_USER=test
-          POSTGRES_PASSWORD=test
-          POSTGRES_HOST=localhost
-          POSTGRES_PORT=5432
-          POSTGRES_DB=rusty_compass_test
-          OPENSEARCH_HOST=localhost
-          OPENSEARCH_PORT=9200
-          OPENSEARCH_USE_SSL=false
           API_KEY=test-api-key-12345
           EOF
 
@@ -88,17 +51,12 @@ jobs:
       - name: Run Unit Tests
         run: |
           cd langchain_agent
-          pytest tests/unit/ -v --tb=short --timeout=30 || true
-
-      - name: Run Integration Tests (with expected skips)
-        run: |
-          cd langchain_agent
-          pytest tests/integration/ -v --tb=short --timeout=30 || true
+          pytest tests/unit/ -v --tb=short --timeout=30
 
       - name: Generate coverage report
         run: |
           cd langchain_agent
-          pytest tests/config_builder/ -v -k "not live" \
+          pytest tests/config_builder/ tests/unit/ -v -k "not live" \
             --cov=. --cov-report=xml --cov-report=term-missing || true
         continue-on-error: true
 
@@ -166,73 +124,3 @@ jobs:
           cd langchain_agent
           mypy main.py --ignore-missing-imports || true
 
-  deployment-check:
-    name: Deployment Verification
-    runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: rusty_compass_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-      opensearch:
-        image: opensearchproject/opensearch:2.11.0
-        env:
-          discovery.type: single-node
-          OPENSEARCH_INITIAL_ADMIN_PASSWORD: TestPassword123!
-          OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
-        options: >-
-          --health-cmd "curl -s http://localhost:9200 > /dev/null || exit 1"
-          --health-interval 10s
-          --health-timeout 15s
-          --health-retries 10
-        ports:
-          - 9200:9200
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: |
-          cd langchain_agent
-          pip install --upgrade pip
-          pip install -e .
-          pip install pytest pytest-asyncio pytest-timeout
-
-      - name: Create test .env
-        run: |
-          cd langchain_agent
-          cat > .env.test << EOF
-          GOOGLE_API_KEY=test-key
-          POSTGRES_USER=test
-          POSTGRES_PASSWORD=test
-          POSTGRES_HOST=localhost
-          POSTGRES_PORT=5432
-          POSTGRES_DB=rusty_compass_test
-          OPENSEARCH_HOST=localhost
-          OPENSEARCH_PORT=9200
-          OPENSEARCH_USE_SSL=false
-          API_KEY=test-api-key
-          EOF
-
-      - name: Run deployment verification tests
-        run: |
-          cd langchain_agent
-          pytest tests/ -v --tb=short || true
-        continue-on-error: true
