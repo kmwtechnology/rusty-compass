@@ -1,8 +1,10 @@
 name: Deploy to GCP
 
-# Automatically deploy to Cloud Run when tests pass on main branch
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  PROJECT_ID: gen-lang-client-0250737934
+  REGION: us-central1
+  SERVICE_NAME: rusty-compass
+  ARTIFACT_REPO: rusty-compass
 
 on:
   push:
@@ -52,8 +54,8 @@ jobs:
           cd langchain_agent
           PYTHONPATH=. pytest tests/unit/ -v --tb=short --timeout=30
 
-  deploy:
-    name: Deploy to Cloud Run
+  build-docker:
+    name: Build & Push Docker Image
     runs-on: ubuntu-latest
     needs: test
 
@@ -68,30 +70,46 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Configure Docker for Artifact Registry
+      - name: Configure Docker
         run: |
-          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
       - name: Build Docker image
         run: |
+          cd langchain_agent
           docker build \
             --platform=linux/amd64 \
-            -t "us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/rusty-compass/rusty-compass:${{ github.sha }}" \
-            -t "us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/rusty-compass/rusty-compass:latest" \
-            langchain_agent/
+            -t "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }}" \
+            -t "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:latest" \
+            .
 
-      - name: Push Docker image to Artifact Registry
+      - name: Push Docker image
         run: |
-          docker push "us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/rusty-compass/rusty-compass:${{ github.sha }}"
-          docker push "us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/rusty-compass/rusty-compass:latest"
+          docker push "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          docker push "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:latest"
+
+  deploy:
+    name: Deploy to Cloud Run
+    runs-on: ubuntu-latest
+    needs: build-docker
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
 
       - name: Deploy to Cloud Run
         run: |
-          gcloud run deploy rusty-compass \
-            --image="us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/rusty-compass/rusty-compass:latest" \
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }} \
+            --region=${{ env.REGION }} \
             --platform=managed \
-            --region=us-central1 \
-            --project=${{ secrets.GCP_PROJECT_ID }} \
             --allow-unauthenticated \
             --memory=512Mi \
             --cpu=1 \
@@ -100,71 +118,17 @@ jobs:
             --concurrency=80 \
             --cpu-throttling \
             --timeout=3600 \
-            --add-cloudsql-instances="${{ secrets.GCP_PROJECT_ID }}:us-central1:rusty-compass-db" \
-            --set-env-vars="\
-POSTGRES_HOST=/cloudsql/${{ secrets.GCP_PROJECT_ID }}:us-central1:rusty-compass-db,\
-POSTGRES_USER=postgres,\
-POSTGRES_DB=langchain_agent,\
-LLM_MODEL=gemini-2.5-flash,\
-EMBEDDINGS_MODEL=models/gemini-embedding-001,\
-RERANKER_MODEL=gemini-2.5-flash-lite,\
-QUERY_EVAL_MODEL=gemini-2.5-flash-lite,\
-VECTOR_DIMENSION=768,\
-LOG_FORMAT=json,\
-LOG_LEVEL=INFO,\
-ENABLE_RERANKING=true,\
-ENABLE_QUERY_EVALUATION=true,\
-ENABLE_CONFIG_BUILDER=true,\
-ENABLE_DOC_WRITER=true,\
-ENABLE_CONTENT_TYPE_CLASSIFICATION=true,\
-OPENSEARCH_HOST=34.138.97.13,\
-OPENSEARCH_PORT=9200,\
-OPENSEARCH_USE_SSL=true,\
-OPENSEARCH_VERIFY_CERTS=false,\
-OPENSEARCH_INDEX_NAME=rusty_compass_docs" \
-            --set-secrets="\
-GOOGLE_API_KEY=rusty-compass-google-api-key:latest,\
-API_KEY=rusty-compass-api-key:latest,\
-POSTGRES_PASSWORD=rusty-compass-db-password:latest,\
-OPENSEARCH_USER=rusty-compass-opensearch-user:latest,\
-OPENSEARCH_PASSWORD=rusty-compass-opensearch-password:latest" \
+            --add-cloudsql-instances="${{ env.PROJECT_ID }}:${{ env.REGION }}:rusty-compass-db" \
+            --set-env-vars="POSTGRES_HOST=/cloudsql/${{ env.PROJECT_ID }}:${{ env.REGION }}:rusty-compass-db,POSTGRES_USER=postgres,POSTGRES_DB=langchain_agent,LLM_MODEL=gemini-2.5-flash,EMBEDDINGS_MODEL=models/gemini-embedding-001,RERANKER_MODEL=gemini-2.5-flash-lite,QUERY_EVAL_MODEL=gemini-2.5-flash-lite,VECTOR_DIMENSION=768,LOG_FORMAT=json,LOG_LEVEL=INFO,ENABLE_RERANKING=true,ENABLE_QUERY_EVALUATION=true,ENABLE_CONFIG_BUILDER=true,ENABLE_DOC_WRITER=true,ENABLE_CONTENT_TYPE_CLASSIFICATION=true,OPENSEARCH_HOST=34.138.97.13,OPENSEARCH_PORT=9200,OPENSEARCH_USE_SSL=true,OPENSEARCH_VERIFY_CERTS=false,OPENSEARCH_INDEX_NAME=rusty_compass_docs" \
+            --set-secrets="GOOGLE_API_KEY=rusty-compass-google-api-key:latest,API_KEY=rusty-compass-api-key:latest,POSTGRES_PASSWORD=rusty-compass-db-password:latest,OPENSEARCH_USER=rusty-compass-opensearch-user:latest,OPENSEARCH_PASSWORD=rusty-compass-opensearch-password:latest" \
             --quiet
 
-      - name: Get deployed service URL
-        id: get-url
+      - name: Verify deployment
         run: |
-          SERVICE_URL=$(gcloud run services describe rusty-compass \
-            --region=us-central1 \
-            --project=${{ secrets.GCP_PROJECT_ID }} \
-            --format="value(status.url)")
-          echo "service_url=$SERVICE_URL" >> $GITHUB_OUTPUT
-
-      - name: Health check
-        run: |
-          SERVICE_URL="${{ steps.get-url.outputs.service_url }}"
-          echo "🚀 Deployment complete!"
+          sleep 5
+          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region=${{ env.REGION }} \
+            --format='value(status.url)')
           echo "Service URL: $SERVICE_URL"
-          echo ""
-          echo "Health Check: $SERVICE_URL/api/health"
-          echo "API Docs: $SERVICE_URL/docs"
-          echo ""
-
-          # Wait for service to be ready
-          for i in {1..30}; do
-            if curl -s "$SERVICE_URL/api/health" > /dev/null 2>&1; then
-              echo "✅ Service is healthy"
-              exit 0
-            fi
-            echo "⏳ Waiting for service to be ready... ($i/30)"
-            sleep 2
-          done
-
-          echo "⚠️  Service health check pending (may take a moment to fully initialize)"
-
-      - name: Deployment notification
-        if: success()
-        run: |
-          echo "✅ Deployment to Cloud Run successful"
-          echo "Branch: ${{ github.ref }}"
-          echo "Commit: ${{ github.sha }}"
-          echo "Author: ${{ github.actor }}"
+          curl -f "$SERVICE_URL/api/health" || exit 1
+          echo "✅ Deployment successful"
