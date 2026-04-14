@@ -14,9 +14,43 @@ on:
 
 jobs:
   test:
-    name: Run Tests
-    uses: ./.github/workflows/test.yml
-    secrets: inherit
+    name: Config Builder & Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          cd langchain_agent
+          pip install --upgrade pip
+          pip install 'psycopg[binary]>=3.3.0' 'psycopg-pool>=3.3.0'
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
+
+      - name: Create test .env
+        run: |
+          cd langchain_agent
+          cat > .env.test << EOF
+          GOOGLE_API_KEY=test-key-12345
+          API_KEY=test-api-key-12345
+          EOF
+
+      - name: Run Config Builder Tests
+        run: |
+          cd langchain_agent
+          PYTHONPATH=. pytest tests/config_builder/ -v -k "not live" --tb=short --timeout=30
+
+      - name: Run Unit Tests
+        run: |
+          cd langchain_agent
+          PYTHONPATH=. pytest tests/unit/ -v --tb=short --timeout=30
 
   deploy:
     name: Deploy to Cloud Run
