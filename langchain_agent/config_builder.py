@@ -884,8 +884,20 @@ def config_response_node(state: CustomAgentState, agent) -> Dict[str, Any]:
     validation_notes = state.get("config_validation_notes", [])
     components = state.get("config_components", [])
 
+    # Prepare mode shift context for explicit feedback (Layer 3)
+    mode_shift_type = state.get("mode_shift_type", "continuation")
+    previous_mode = state.get("previous_agent_mode", "rag")
+    if mode_shift_type == "soft_shift" and previous_mode == "config_builder":
+        shift_note = "Building on the pipeline configuration from earlier — "
+    elif mode_shift_type == "hard_shift":
+        shift_note = "Switching to pipeline configuration — "
+    else:
+        shift_note = ""
+
     # Build response
     parts = []
+    if shift_note:
+        parts.append(shift_note)
 
     # Component summary
     resolved_count = sum(1 for c in components if c.get("resolved"))

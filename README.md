@@ -32,7 +32,8 @@ Secret Manager, and Artifact Registry. Scales to zero when idle.
 
 A multi-capability RAG agent powered by Google Gemini AI that combines:
 
-- **Three Operating Modes** - RAG Q&A, Config Builder, Documentation Writer
+- **Three Operating Modes** - RAG Q&A, Config Builder, Documentation Writer with **Workflow State Management**
+- **Intelligent Mode Transitions** - Detects continuation vs. soft shifts vs. hard shifts; auto-resets stale context on mode changes
 - **Intent Classification** - 5 intents (question, config_request,
   documentation_request, summary, follow_up) with 95%+ accuracy
 - **Content Type System** - 5 content types (social post, blog, technical
@@ -51,6 +52,23 @@ A multi-capability RAG agent powered by Google Gemini AI that combines:
   execution, timing, search scores, and classification details
 - **Smart Citations** - GitHub-linked document references with
   relevance-based suppression
+
+## Workflow State Management
+
+The agent intelligently manages state transitions across its three operating modes (RAG Q&A, Config Builder, Documentation Writer):
+
+**Mode Transition Types:**
+- **Continuation** — Same mode as previous turn (e.g., follow-up question while in RAG mode)
+- **Soft Shift** — Ambiguous continuation (e.g., "tell me more" while in Config Builder mode) — stays in prior mode
+- **Hard Shift** — Explicit mode change (e.g., "build me a config" while in RAG mode) — switches modes and clears stale context
+
+**Smart Context Handling:**
+- Detects whether user is refining prior work or starting fresh
+- Auto-resets stale state fields (config_components, doc_outline, retrieved_documents) on hard shifts
+- Prevents "awaiting clarification" traps when users abandon prior context
+- Provides explicit feedback: "Switching to pipeline configuration — ..." or "Continuing from the documentation..."
+
+**Test Coverage:** 37 comprehensive unit tests cover all transition permutations, edge cases, and state cleanup logic.
 
 ## Architecture
 
@@ -171,7 +189,7 @@ Generates **valid, production-ready HOCON pipeline configurations** from natural
 | **Validation** | Lucille's `Runner.runInValidationMode()` (standalone, no external connections needed) |
 | **Retry Loop** | Up to 2 retries with error context when validation fails |
 | **Graceful Fallback** | Works without Java validator (validation skipped, just logs warning) |
-| **Test Coverage** | 35 unit tests + 20 stress tests with 95% pass rate across all connector/indexer combinations |
+| **Test Coverage** | 37 workflow state management tests + 35 config builder unit tests + 20 stress tests with 95%+ pass rate |
 
 **Regenerate catalog** (after Lucille adds new components):
 
@@ -180,18 +198,22 @@ cd langchain_agent
 python scripts/extract_specs.py
 ```
 
-**Run config builder tests**:
+**Run tests**:
 
 ```bash
 cd langchain_agent && source .venv/bin/activate
-# Unit tests only (fast)
+
+# Workflow state management tests (mode transitions, routing, state cleanup)
+python -m pytest tests/unit/test_mode_transitions.py -v
+
+# Config builder tests (unit only, fast)
 python -m pytest tests/config_builder/ -v -k "not live"
 
-# Full test suite (requires GOOGLE_API_KEY)
+# Config builder full test suite (requires GOOGLE_API_KEY)
 python -m pytest tests/config_builder/ -v
 
-# Specific test
-python -m pytest tests/config_builder/test_random_configs.py::TestRandomConfigs::test_random_config_1 -v
+# All unit tests
+python -m pytest tests/unit/ -v
 ```
 
 **Example Usage:**
