@@ -79,6 +79,8 @@ class CustomAgentState(TypedDict, total=False):
     # Multi-capability agent mode
     # Defaults: agent_mode="rag"
     agent_mode: Optional[str]  # "rag", "config_builder", "doc_writer"
+    previous_agent_mode: Optional[str]  # Mode active before this turn's intent was classified
+    mode_shift_type: Optional[str]  # "continuation", "soft_shift", "hard_shift"
 
     # Config builder state (Phase 2)
     config_components: Optional[List[dict]]  # Resolved component specs

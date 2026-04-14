@@ -243,6 +243,16 @@ def doc_synthesizer_node(state: CustomAgentState, agent) -> Dict[str, Any]:
     if not outline or not sections_content:
         return {"messages": [AIMessage(content="Unable to generate documentation - no content was gathered.")]}
 
+    # Prepare mode shift context for explicit feedback (Layer 3)
+    mode_shift_type = state.get("mode_shift_type", "continuation")
+    previous_mode = state.get("previous_agent_mode", "rag")
+    if mode_shift_type == "soft_shift" and previous_mode == "doc_writer":
+        shift_note = "Continuing from the documentation in progress — "
+    elif mode_shift_type == "hard_shift":
+        shift_note = "Switching to documentation mode — "
+    else:
+        shift_note = ""
+
     # Build context for each section
     section_contexts = []
     for section in outline:
@@ -269,7 +279,7 @@ def doc_synthesizer_node(state: CustomAgentState, agent) -> Dict[str, Any]:
         })
 
     # Pass 1: Generate each section
-    generation_prompt = f"""Write comprehensive documentation titled "{doc_title}".
+    generation_prompt = f"""{shift_note}Write comprehensive documentation titled "{doc_title}".
 
 Generate the following sections using the provided context. Write in clear, technical prose.
 Include code examples where relevant (use HOCON for configs, Java for code).

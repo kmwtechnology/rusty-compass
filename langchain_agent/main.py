@@ -352,6 +352,38 @@ class LucilleAgent:
         intent, reasoning, confidence, clarifying_questions = self._classify_intent(user_query, messages)
         logger.info(f"Intent classification: intent={intent}, confidence={confidence:.2f}, query={user_query[:50] if user_query else '<empty>'}...")
 
+        # Detect mode shift for workflow state management
+        shift_type = self._detect_mode_shift(state, intent)
+        current_mode = state.get("agent_mode") or "rag"
+
+        # Prepare extra fields for state cleanup on hard_shift
+        extra_fields = {}
+        if shift_type == "hard_shift":
+            logger.info(
+                f"Hard shift detected: {current_mode} → {intent} "
+                f"(shift_type={shift_type}). Clearing stale mode-specific state."
+            )
+            extra_fields = {
+                "awaiting_clarification": False,
+                "clarification_type": None,
+                "clarification_candidates": None,
+                "needs_clarification": False,
+                "config_components": None,
+                "config_output": None,
+                "config_validation_notes": None,
+                "config_validation_attempts": None,
+                "config_validation_errors": None,
+                "config_validation_passed": None,
+                "doc_outline": None,
+                "doc_gathered_content": None,
+                "doc_sections_gathered": None,
+                "doc_sections_total": None,
+                "retrieved_documents": [],
+                "alpha_adjusted": False,
+                "_needs_retrieval_retry": False,
+                "query_transformed": None,
+            }
+
         return {
             "intent": intent,
             "user_query": user_query,
@@ -359,6 +391,9 @@ class LucilleAgent:
             "confidence": confidence,  # For UI display
             "intent_confidence": confidence,
             "clarifying_questions": clarifying_questions,
+            "previous_agent_mode": current_mode,
+            "mode_shift_type": shift_type,
+            **extra_fields,
         }
 
     def query_evaluator_node(self, state: CustomAgentState) -> Dict[str, Any]:
@@ -706,7 +741,17 @@ Respond with ONLY valid JSON. The "reasoning" MUST describe the actual query "{l
             # For questions, stick closer to existing documentation
             synthesis_instruction = "- Use only the retrieved documents above and the recent conversation context to respond; do not hallucinate beyond those facts."
 
-        system_prompt = f"""You are a precise, grounded assistant that answers questions using a knowledge base of Lucille ETL framework documentation.
+        # Prepare mode shift context for explicit feedback (Layer 3)
+        mode_shift_type = state.get("mode_shift_type", "continuation")
+        previous_mode = state.get("previous_agent_mode", "rag")
+        mode_shift_preamble = ""
+        if mode_shift_type == "hard_shift" and previous_mode != "rag":
+            mode_shift_preamble = (
+                f"\n[Context: Switching from {previous_mode.replace('_', ' ')} mode to Q&A. "
+                f"Acknowledge the shift naturally and respond to the new question.]\n"
+            )
+
+        system_prompt = f"""{mode_shift_preamble}You are a precise, grounded assistant that answers questions using a knowledge base of Lucille ETL framework documentation.
 {recent_context_block}RETRIEVED DOCUMENTS FROM KNOWLEDGE BASE:
 {context}
 
@@ -1053,6 +1098,47 @@ Respond with JSON only. No other text."""
         if isinstance(message, SystemMessage):
             return "System"
         return "Message"
+
+    def _detect_mode_shift(self, state: CustomAgentState, new_intent: str) -> str:
+        """
+        Determine the type of mode shift implied by the new intent relative to prior state.
+
+        Returns one of:
+          "continuation" — same mode as before, or first turn (no prior mode)
+          "soft_shift"   — ambiguous transition; follow_up after a non-RAG mode
+          "hard_shift"   — explicit new mode via a mode-specific intent keyword
+
+        Intent-to-mode mapping:
+          question, follow_up, summary, clarify → "rag"
+          config_request                        → "config_builder"
+          documentation_request                 → "doc_writer"
+
+        The caller (intent_classifier_node) is responsible for writing
+        previous_agent_mode and mode_shift_type back to state.
+        """
+        _INTENT_TO_MODE = {
+            "question": "rag",
+            "follow_up": "rag",
+            "summary": "rag",
+            "clarify": "rag",
+            "config_request": "config_builder",
+            "documentation_request": "doc_writer",
+        }
+
+        current_mode = state.get("agent_mode") or "rag"
+        new_mode = _INTENT_TO_MODE.get(new_intent, "rag")
+
+        # First turn or same mode
+        if current_mode == new_mode:
+            return "continuation"
+
+        # follow_up after a non-RAG mode: user may still be in that context
+        if new_intent == "follow_up" and current_mode != "rag":
+            return "soft_shift"
+
+        # Explicit mode-specific intent keyword pointing to a different mode
+        # or RAG-flavored intent after a non-RAG mode
+        return "hard_shift"
 
     def _extract_title_from_path(self, path: str) -> str:
         """
@@ -1579,13 +1665,20 @@ Respond with JSON only. No other text."""
         - "doc_writer" → content_type_classifier or doc_planner node (doc pipeline)
         - "other" → query_evaluator node (normal Q&A pipeline)
 
-        Special case: If awaiting_clarification=True (from previous turn),
-        route to clarification resolver instead of normal flow.
+        Special cases:
+        - If awaiting_clarification=True (from previous turn), route to clarification resolver
+          UNLESS a hard_shift was detected (user abandoned the clarification context)
+        - If soft_shift follow_up is detected, route back to the previous mode's handler
         """
         from config import ENABLE_CONFIG_BUILDER, ENABLE_DOC_WRITER, ENABLE_CONTENT_TYPE_CLASSIFICATION
 
+        intent = state.get("intent", "question")
+        shift_type = state.get("mode_shift_type", "continuation")
+        previous_mode = state.get("previous_agent_mode", "rag")
+
         # Check if we're awaiting user's clarification response
-        if state.get("awaiting_clarification"):
+        # But skip this if a hard_shift was detected (user abandoned the clarification context)
+        if state.get("awaiting_clarification") and shift_type != "hard_shift":
             clarification_type = state.get("clarification_type", "format")
             if clarification_type == "format" and ENABLE_CONTENT_TYPE_CLASSIFICATION:
                 logger.info("User responding to format clarification")
@@ -1594,7 +1687,18 @@ Respond with JSON only. No other text."""
                 logger.info("User responding to topic clarification")
                 return "topic_resolver"
 
-        intent = state.get("intent", "question")
+        # Handle soft_shift: follow_up while in a non-RAG mode should stay in that mode
+        if shift_type == "soft_shift" and intent == "follow_up":
+            logger.info(
+                f"Soft shift: follow_up after {previous_mode} mode — "
+                f"routing back to {previous_mode}"
+            )
+            if previous_mode == "config_builder" and ENABLE_CONFIG_BUILDER:
+                return "config_builder"
+            if previous_mode == "doc_writer" and ENABLE_DOC_WRITER:
+                return "doc_writer"
+            # fallthrough to "other" if the previous mode is unavailable
+
 
         # Handle disabled features - remap to question for RAG processing
         if intent == "config_request" and not ENABLE_CONFIG_BUILDER:
