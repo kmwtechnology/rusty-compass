@@ -1,5 +1,6 @@
 name: Deploy to GCP
 
+# Automatically deploy to Cloud Run when tests pass on main branch
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
