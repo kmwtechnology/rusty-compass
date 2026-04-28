@@ -16,6 +16,31 @@ python3.13 -m venv .venv
 .venv/bin/pip install pytest pytest-asyncio pytest-cov pytest-timeout pytest-xdist
 ```
 
+## Lucille (Java validator) — local clone
+
+The Lucille project is required for: (a) the Java config validator that
+runs in `lucille_validator.py`, and (b) building the production Docker
+image. It's a sibling project, gitignored here because it's too large to
+vendor. Clone it as a sibling at the SHA pinned in `.lucille-version`:
+
+```bash
+# from the rusty-compass repo root
+git clone https://github.com/kmwtechnology/lucille.git lucille
+cd lucille
+git checkout "$(cat ../.lucille-version)"
+mvn -DskipTests -pl lucille-core -am package
+```
+
+The validator code looks for `lucille-core/target/classes` under the path
+in the `LUCILLE_PROJECT_DIR` env var (default: `../lucille` relative to
+`langchain_agent/`). If those artifacts aren't present, the validator
+gracefully degrades and emits a `Validation skipped` note — you'll see
+this in tests as `outcome=validator_unavailable`.
+
+To upgrade the production validator, edit `.lucille-version` with a newer
+SHA from `kmwtechnology/lucille` and open a PR. The deploy workflow will
+clone at that SHA and rebuild the image.
+
 ## Running the CI checks locally
 
 `make ci` runs the same two pytest invocations that

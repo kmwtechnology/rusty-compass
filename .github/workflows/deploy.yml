@@ -11,7 +11,7 @@ on:
     branches: [main]
     paths:
       - 'langchain_agent/**'
-      - 'lucille/**'
+      - '.lucille-version'
       - '.dockerignore'
       - '.github/workflows/deploy.yml'
       - '.github/workflows/test.yml'
@@ -80,6 +80,22 @@ jobs:
         # Required for the multi-stage build's `--mount=type=cache` directive
         # in the lucille-builder stage (Maven dependency cache).
         uses: docker/setup-buildx-action@v3
+
+      - name: Clone Lucille at pinned SHA
+        # The lucille/ directory is gitignored in this repo (it's a sibling
+        # project, too large to vendor). The Dockerfile's lucille-builder
+        # stage needs the source available in the build context, so we
+        # clone it here. SHA is pinned via .lucille-version for build
+        # reproducibility — bumping that file in a PR is the supported
+        # path for upgrading the validator.
+        run: |
+          set -euo pipefail
+          LUCILLE_SHA=$(cat .lucille-version | tr -d '[:space:]')
+          echo "Cloning kmwtechnology/lucille at $LUCILLE_SHA"
+          git clone --filter=blob:none https://github.com/kmwtechnology/lucille.git lucille
+          cd lucille
+          git checkout "$LUCILLE_SHA"
+          echo "Lucille checked out at: $(git rev-parse HEAD)"
 
       - name: Build Docker image
         # Build context is the repo ROOT (not langchain_agent/) so the
