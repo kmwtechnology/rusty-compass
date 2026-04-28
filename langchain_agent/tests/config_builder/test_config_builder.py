@@ -335,24 +335,56 @@ class TestValidatorParser:
         assert any("unknown property invalidProp" in e for e in errors)
         assert any("missing required property formatString" in e for e in errors)
 
-    def test_noclassdeffounderror_treated_as_valid(self):
+    def test_noclassdeffounderror_classified_as_missing_plugin(self):
+        # NoClassDefFoundError indicates a missing optional plugin JAR — the
+        # user's config may still be correct. The parser must NOT lie about
+        # `valid` (it didn't actually validate); routing in config_builder
+        # decides not to block the user. See ValidationOutcome.MISSING_PLUGIN.
+        from lucille_validator import ValidationOutcome
+
         output = (
             "Exception in thread \"main\" java.lang.NoClassDefFoundError: "
             "org/apache/tika/parser/Parser\n"
             "\tat java.base/java.lang.Class.forName0(Native Method)"
         )
         result = self.parse(output, 0)
-        assert result.valid is True
+        assert result.outcome == ValidationOutcome.MISSING_PLUGIN
+        assert result.valid is False
+        assert result.can_retry is False
+        assert "tika" in (result.diagnostic or "")
+
+    def test_jvm_linkage_error_classified_as_validator_unhealthy(self):
+        # Jackson 2.17 / 2.19 version skew on the validator's classpath
+        # surfaces as NoSuchMethodError. This is an infrastructure bug the
+        # LLM cannot fix — must NOT be reported as 18 fake config errors.
+        from lucille_validator import ValidationOutcome
+
+        output = (
+            "Exception in thread \"main\" java.lang.NoSuchMethodError: "
+            "'void com.fasterxml.jackson.core.base.ParserMinimalBase.<init>"
+            "(com.fasterxml.jackson.core.StreamReadConstraints)'\n"
+            "\tat com.fasterxml.jackson.databind.util.TokenBuffer$Parser.<init>(TokenBuffer.java:1562)\n"
+            "\tat com.kmwllc.lucille.indexer.SolrIndexer.<init>(SolrIndexer.java:71)"
+        )
+        result = self.parse(output, 1)
+        assert result.outcome == ValidationOutcome.VALIDATOR_UNHEALTHY
+        assert result.valid is False
+        assert result.can_retry is False
+        assert result.errors == {}, "must not surface stack frames as fake config errors"
+        assert result.diagnostic and "NoSuchMethodError" in result.diagnostic
 
     def test_hocon_parse_error(self):
+        from lucille_validator import ValidationOutcome
+
         output = (
             "Exception in thread \"main\" com.typesafe.config.ConfigException$Parse: "
             "file.conf: 5: Expecting a value but got end of file"
         )
         result = self.parse(output, 1)
+        assert result.outcome == ValidationOutcome.PARSE_ERROR
         assert result.valid is False
-        # Parse errors may land in _parse or _system depending on order of checks
-        assert "_parse" in result.errors or "_system" in result.errors
+        assert result.can_retry is True
+        assert "_parse" in result.errors
 
 
 # ============================================================================
