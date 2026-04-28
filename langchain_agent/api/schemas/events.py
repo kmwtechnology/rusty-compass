@@ -569,14 +569,25 @@ class ConfigGeneratedEvent(BaseEvent):
 
 
 class ConfigValidationEvent(BaseEvent):
-    """Emitted when config validation completes."""
+    """Emitted when config validation completes.
+
+    `outcome` is the precise classification (valid / structural_errors /
+    parse_error / validator_unhealthy / missing_plugin / timeout /
+    validator_unavailable). `valid` is preserved for backward compatibility
+    and is true only when outcome == "valid".
+
+    `diagnostic` carries operator-facing context for non-VALID outcomes that
+    aren't user-fixable (e.g., a JVM linkage error message).
+    """
 
     type: Literal["config_validation"] = "config_validation"
     node: Literal["config_validator"] = "config_validator"
     valid: bool
+    outcome: str = "valid"
     attempt: int
     error_count: int = 0
     errors: Dict[str, List[str]] = {}
+    diagnostic: Optional[str] = None
     will_retry: bool = False
 
 

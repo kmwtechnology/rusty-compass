@@ -789,7 +789,11 @@ def config_validator_node(state: CustomAgentState, agent) -> Dict[str, Any]:
 
     # Try to validate
     try:
-        from lucille_validator import validate_config, is_validator_available
+        from lucille_validator import (
+            validate_config,
+            is_validator_available,
+            ValidationOutcome,
+        )
 
         if not is_validator_available():
             logger.info("Config validator: Java validator not available, skipping")
@@ -802,63 +806,106 @@ def config_validator_node(state: CustomAgentState, agent) -> Dict[str, Any]:
 
         result = validate_config(config_output)
         validation_attempts += 1
+        elapsed = time.time() - start_time
 
-        # Emit validation event
+        # Routing decision: should we retry the generator?
+        # Only when the LLM has a real chance of fixing it (config-quality
+        # errors). For validator-side problems we don't burn retries.
+        will_retry = result.can_retry and validation_attempts <= CONFIG_VALIDATION_MAX_RETRIES
+
+        # Emit validation event with full outcome detail for observability.
         try:
             from api.schemas.events import ConfigValidationEvent
             if agent.emit_callback:
                 agent._emit_event_from_sync(ConfigValidationEvent(
                     valid=result.valid,
+                    outcome=result.outcome.value,
                     attempt=validation_attempts,
                     error_count=sum(len(v) for v in result.errors.values()),
                     errors=result.errors,
-                    will_retry=not result.valid and validation_attempts <= CONFIG_VALIDATION_MAX_RETRIES,
+                    diagnostic=result.diagnostic,
+                    will_retry=will_retry,
                 ))
-        except (ImportError, Exception) as e:
+        except Exception as e:
             logger.debug(f"Config validation event emission skipped: {e}")
 
-        if result.valid:
-            logger.info(f"Config validator: valid (attempt {validation_attempts}) in {time.time() - start_time:.3f}s")
-            validation_notes.append(f"Validated by Lucille validator (attempt {validation_attempts})")
+        outcome = result.outcome
+
+        # ── Successful validation ────────────────────────────────────────
+        if outcome == ValidationOutcome.VALID:
+            logger.info(
+                "Config validator: VALID (attempt=%d, elapsed=%.3fs)",
+                validation_attempts, elapsed,
+            )
+            validation_notes.append(
+                f"Validated by Lucille validator (attempt {validation_attempts})"
+            )
             return {
                 "config_validation_passed": True,
                 "config_validation_errors": {},
                 "config_validation_notes": validation_notes,
                 "config_validation_attempts": validation_attempts,
             }
-        else:
-            error_summary = []
-            for component, errors in result.errors.items():
-                for error in errors:
-                    error_summary.append(f"{component}: {error}")
 
-            logger.warning(
-                f"Config validator: {len(error_summary)} error(s) (attempt {validation_attempts})"
+        # ── Validator-side problems (not user-fixable) ───────────────────
+        # Surface the diagnostic to operators but don't block the user — the
+        # config may still be correct; we just couldn't confirm it.
+        if outcome in (
+            ValidationOutcome.VALIDATOR_UNHEALTHY,
+            ValidationOutcome.MISSING_PLUGIN,
+            ValidationOutcome.TIMEOUT,
+            ValidationOutcome.VALIDATOR_UNAVAILABLE,
+        ):
+            log_fn = logger.error if outcome == ValidationOutcome.VALIDATOR_UNHEALTHY else logger.info
+            log_fn(
+                "Config validator: outcome=%s diagnostic=%r (attempt=%d, elapsed=%.3fs) "
+                "— validation skipped, no retry. Returning generated config as-is.",
+                outcome.value, result.diagnostic, validation_attempts, elapsed,
             )
+            validation_notes.append(
+                f"Validation skipped ({outcome.value}): {result.diagnostic or 'no detail'}"
+            )
+            return {
+                "config_validation_passed": True,
+                "config_validation_errors": {},
+                "config_validation_notes": validation_notes,
+                "config_validation_attempts": validation_attempts,
+            }
 
-            if validation_attempts <= CONFIG_VALIDATION_MAX_RETRIES:
-                # Will retry — set errors for generator
-                validation_notes.append(
-                    f"Validation attempt {validation_attempts} failed: {len(error_summary)} error(s)"
-                )
-                return {
-                    "config_validation_passed": False,
-                    "config_validation_errors": result.errors,
-                    "config_validation_notes": validation_notes,
-                    "config_validation_attempts": validation_attempts,
-                }
-            else:
-                # Max retries exceeded
-                validation_notes.extend([
+        # ── User-fixable errors (STRUCTURAL_ERRORS, PARSE_ERROR) ─────────
+        error_summary = [
+            f"{component}: {error}"
+            for component, errors in result.errors.items()
+            for error in errors
+        ]
+        logger.warning(
+            "Config validator: outcome=%s error_count=%d (attempt=%d, elapsed=%.3fs)",
+            outcome.value, len(error_summary), validation_attempts, elapsed,
+        )
+        # Per-error lines at DEBUG so operators can opt-in without log spam.
+        for err_line in error_summary:
+            logger.debug("  validation_err: %s", err_line)
+
+        if will_retry:
+            validation_notes.append(
+                f"Validation attempt {validation_attempts} failed: "
+                f"{len(error_summary)} error(s) — retrying"
+            )
+        else:
+            validation_notes.extend(
+                [
                     f"Validation failed after {validation_attempts} attempt(s)",
                     "Remaining errors:",
-                ] + error_summary[:5])
-                return {
-                    "config_validation_passed": False,
-                    "config_validation_errors": result.errors,
-                    "config_validation_notes": validation_notes,
-                    "config_validation_attempts": validation_attempts,
-                }
+                ]
+                + error_summary[:5]
+            )
+
+        return {
+            "config_validation_passed": False,
+            "config_validation_errors": result.errors,
+            "config_validation_notes": validation_notes,
+            "config_validation_attempts": validation_attempts,
+        }
 
     except ImportError:
         logger.info("Config validator: lucille_validator module not available, skipping")
@@ -867,10 +914,13 @@ def config_validator_node(state: CustomAgentState, agent) -> Dict[str, Any]:
             "config_validation_attempts": validation_attempts,
         }
     except Exception as e:
-        logger.error(f"Config validator: unexpected error: {e}")
-        validation_notes.append(f"Validation error: {e}")
+        # Defense-in-depth: never let a validator bug crash the graph. Surface
+        # to operators via ERROR log; treat as skipped so the user still gets
+        # their generated config.
+        logger.exception("Config validator: unexpected error in validator node")
+        validation_notes.append(f"Validation skipped (validator node error): {type(e).__name__}: {e}")
         return {
-            "config_validation_passed": False,
+            "config_validation_passed": True,
             "config_validation_notes": validation_notes,
             "config_validation_attempts": validation_attempts,
         }
