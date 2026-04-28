@@ -354,9 +354,24 @@ class OpenSearchVectorStore:
                             "bool": {
                                 "must": [
                                     {
-                                        "match": {
+                                        "multi_match": {
+                                            "query": query,
+                                            "fields": [
+                                                "title^4",
+                                                "class_name.text^3",
+                                                "chunk_text^1"
+                                            ],
+                                            "fuzziness": "AUTO",
+                                            "operator": "or"
+                                        }
+                                    }
+                                ],
+                                "should": [
+                                    {
+                                        "match_phrase": {
                                             "chunk_text": {
                                                 "query": query,
+                                                "boost": 2
                                             }
                                         }
                                     }
@@ -407,7 +422,30 @@ class OpenSearchVectorStore:
             "_source": {"excludes": ["embedding"]},
             "query": {
                 "bool": {
-                    "must": [{"match": {"chunk_text": {"query": query}}}],
+                    "must": [
+                        {
+                            "multi_match": {
+                                "query": query,
+                                "fields": [
+                                    "title^4",
+                                    "class_name.text^3",
+                                    "chunk_text^1"
+                                ],
+                                "fuzziness": "AUTO",
+                                "operator": "or"
+                            }
+                        }
+                    ],
+                    "should": [
+                        {
+                            "match_phrase": {
+                                "chunk_text": {
+                                    "query": query,
+                                    "boost": 2
+                                }
+                            }
+                        }
+                    ],
                     "filter": [{"term": {"collection_id": self.collection_id}}],
                 }
             },
@@ -448,7 +486,30 @@ class OpenSearchVectorStore:
                 "_source": {"excludes": ["embedding"]},
                 "query": {
                     "bool": {
-                        "must": [{"match": {"chunk_text": {"query": query}}}],
+                        "must": [
+                            {
+                                "multi_match": {
+                                    "query": query,
+                                    "fields": [
+                                        "title^4",
+                                        "class_name.text^3",
+                                        "chunk_text^1"
+                                    ],
+                                    "fuzziness": "AUTO",
+                                    "operator": "or"
+                                }
+                            }
+                        ],
+                        "should": [
+                            {
+                                "match_phrase": {
+                                    "chunk_text": {
+                                        "query": query,
+                                        "boost": 2
+                                    }
+                                }
+                            }
+                        ],
                         "filter": [{"term": {"collection_id": self.collection_id}}],
                     }
                 },

@@ -250,7 +250,7 @@ def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVE
 def extract_class_name(html_path: Path) -> str:
     """Extract class name from javadoc HTML file path."""
     # Convert path like "com/kmwllc/lucille/ClassName.html" to "ClassName"
-    return html_path.stem.replace("_", " ").title()
+    return html_path.stem.replace("_", " ")
 
 
 def parse_markdown(content: str) -> str:
