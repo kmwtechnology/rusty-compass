@@ -371,7 +371,7 @@ class LucilleAgent:
                 "config_components": None,
                 "config_output": None,
                 "config_validation_notes": None,
-                "config_validation_attempts": None,
+                "config_validation_attempts": 0,
                 "config_validation_errors": None,
                 "config_validation_passed": None,
                 "doc_outline": None,
