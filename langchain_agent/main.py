@@ -657,7 +657,7 @@ Respond with ONLY valid JSON. The "reasoning" MUST describe the actual query "{l
                 score = doc.metadata.get('reranker_score', 0)
                 # Format: [Document N: Title] (doc_type, relevance: score)
                 header = f"[Document {i}: {title}]" if title else f"[Document {i}]"
-                context_parts.append(f"{header} ({doc_type}, relevance: {score:.3f})\n{doc.page_content}")
+                context_parts.append(f"{header} ({doc_type}, relevance: {score:.3f})\n{doc.page_content or ''}")
             context = "\n\n---\n\n".join(context_parts)
         else:
             context = "No relevant documents were found."
