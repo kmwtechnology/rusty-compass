@@ -112,7 +112,7 @@ class GeminiReranker:
         """Build the scoring prompt with numbered document excerpts."""
         doc_lines = []
         for i, doc in enumerate(documents):
-            text = doc.page_content[:500] if doc.page_content else ""
+            text = doc.page_content[:500]
             doc_lines.append(f"[{i}] {text}")
 
         return SCORING_PROMPT_TEMPLATE.format(

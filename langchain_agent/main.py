@@ -657,7 +657,7 @@ Respond with ONLY valid JSON. The "reasoning" MUST describe the actual query "{l
                 score = doc.metadata.get('reranker_score', 0)
                 # Format: [Document N: Title] (doc_type, relevance: score)
                 header = f"[Document {i}: {title}]" if title else f"[Document {i}]"
-                context_parts.append(f"{header} ({doc_type}, relevance: {score:.3f})\n{doc.page_content or ''}")
+                context_parts.append(f"{header} ({doc_type}, relevance: {score:.3f})\n{doc.page_content}")
             context = "\n\n---\n\n".join(context_parts)
         else:
             context = "No relevant documents were found."
@@ -1422,7 +1422,7 @@ Respond with JSON only. No other text."""
                     candidates=[
                         SearchCandidate(
                             source=doc.metadata.get("source", "unknown"),
-                            snippet=doc.page_content[:200] + "..." if doc.page_content and len(doc.page_content) > 200 else doc.page_content or "",
+                            snippet=doc.page_content[:200] + "..." if len(doc.page_content) > 200 else doc.page_content,
                             url=doc.metadata.get("url"),
                         )
                         for doc in results[:10]
@@ -1450,7 +1450,7 @@ Respond with JSON only. No other text."""
                 doc.metadata['original_rank'] = i
 
             # Calculate total content size for throughput metrics
-            total_content_chars = sum(len(doc.page_content) if doc.page_content else 0 for doc in results)
+            total_content_chars = sum(len(doc.page_content) for doc in results)
             batch_size = self.reranker.batch_size
             num_batches = (len(results) + batch_size - 1) // batch_size
 

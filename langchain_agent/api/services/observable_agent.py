@@ -667,7 +667,7 @@ class ObservableAgentService:
             # Calculate rank change (negative = improved/moved up, positive = degraded/moved down)
             rank_change = rank - original_rank
 
-            snippet = doc.page_content[:200] + "..." if doc.page_content and len(doc.page_content) > 200 else doc.page_content or ""
+            snippet = doc.page_content[:200] + "..." if len(doc.page_content) > 200 else doc.page_content
 
             reranked_docs.append(RerankedDocument(
                 source=source,

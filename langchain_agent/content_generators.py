@@ -756,7 +756,7 @@ def social_content_generator_node(state: CustomAgentState, agent: "LucilleAgent"
             # Format context from retrieved documents
             context_parts = []
             for i, doc in enumerate(retrieved_docs, 1):
-                content = doc.page_content[:300] if doc.page_content else ""  # Limit to 300 chars per doc
+                content = doc.page_content[:300]  # Limit to 300 chars per doc
                 source = doc.metadata.get("source", "Unknown")
                 context_parts.append(f"[{i}] {content} (Source: {source})")
 
@@ -949,7 +949,7 @@ Your outline:"""
         seen_content = set()
         unique_docs = []
         for doc in all_docs:
-            content_hash = hash((doc.page_content or "")[:200])
+            content_hash = hash(doc.page_content[:200])
             if content_hash not in seen_content:
                 seen_content.add(content_hash)
                 unique_docs.append(doc)
@@ -959,7 +959,7 @@ Your outline:"""
         # Format context
         context_parts = []
         for i, doc in enumerate(unique_docs[:15], 1):  # Limit to top 15
-            content = (doc.page_content or "")[:400]
+            content = doc.page_content[:400]
             source = doc.metadata.get("source", "Unknown")
             context_parts.append(f"[{i}] {content}\n(Source: {source})")
 
@@ -1166,7 +1166,7 @@ Your outline:"""
         seen_content = set()
         unique_docs = []
         for doc in all_docs:
-            content_hash = hash((doc.page_content or "")[:200])
+            content_hash = hash(doc.page_content[:200])
             if content_hash not in seen_content:
                 seen_content.add(content_hash)
                 unique_docs.append(doc)
@@ -1176,7 +1176,7 @@ Your outline:"""
         # Format context - keep it concise to leave room for generation
         context_parts = []
         for i, doc in enumerate(unique_docs[:10], 1):
-            content = (doc.page_content or "")[:300]
+            content = doc.page_content[:300]
             source = doc.metadata.get("source", "Unknown")
             context_parts.append(f"[{i}] {content}\n(Source: {source})")
 
@@ -1367,7 +1367,7 @@ Your tutorial steps:"""
         seen_content = set()
         unique_docs = []
         for doc in all_docs:
-            content_hash = hash((doc.page_content or "")[:200])
+            content_hash = hash(doc.page_content[:200])
             if content_hash not in seen_content:
                 seen_content.add(content_hash)
                 unique_docs.append(doc)
@@ -1377,7 +1377,7 @@ Your tutorial steps:"""
         # Format context
         context_parts = []
         for i, doc in enumerate(unique_docs[:15], 1):
-            content = (doc.page_content or "")[:400]
+            content = doc.page_content[:400]
             source = doc.metadata.get("source", "Unknown")
             context_parts.append(f"[{i}] {content}\n(Source: {source})")
 
