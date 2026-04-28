@@ -663,11 +663,11 @@ class ObservableAgentService:
             # Extract reranker score if available, otherwise use 0.0
             score = doc.metadata.get("reranker_score", 0.0)
             # Extract original rank if available, otherwise estimate based on position
-            original_rank = doc.metadata.get("original_rank", rank)
+            original_rank = doc.metadata.get("original_rank") or rank
             # Calculate rank change (negative = improved/moved up, positive = degraded/moved down)
             rank_change = rank - original_rank
 
-            snippet = doc.page_content[:200] + "..." if len(doc.page_content) > 200 else doc.page_content
+            snippet = doc.page_content[:200] + "..." if doc.page_content and len(doc.page_content) > 200 else doc.page_content or ""
 
             reranked_docs.append(RerankedDocument(
                 source=source,
