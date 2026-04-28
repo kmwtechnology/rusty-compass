@@ -1422,7 +1422,7 @@ Respond with JSON only. No other text."""
                     candidates=[
                         SearchCandidate(
                             source=doc.metadata.get("source", "unknown"),
-                            snippet=doc.page_content[:200] + "..." if len(doc.page_content) > 200 else doc.page_content,
+                            snippet=doc.page_content[:200] + "..." if doc.page_content and len(doc.page_content) > 200 else doc.page_content or "",
                             url=doc.metadata.get("url"),
                         )
                         for doc in results[:10]
@@ -1450,7 +1450,7 @@ Respond with JSON only. No other text."""
                 doc.metadata['original_rank'] = i
 
             # Calculate total content size for throughput metrics
-            total_content_chars = sum(len(doc.page_content) for doc in results)
+            total_content_chars = sum(len(doc.page_content) if doc.page_content else 0 for doc in results)
             batch_size = self.reranker.batch_size
             num_batches = (len(results) + batch_size - 1) // batch_size
 
