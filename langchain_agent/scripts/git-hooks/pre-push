@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Pre-push hook: run the same tests CI runs before allowing a push.
+#
+# This hook is tracked in the repo at langchain_agent/scripts/git-hooks/pre-push.
+# Install it into your clone with: make -C langchain_agent install-hooks
+#
+# Bypass (emergencies only): git push --no-verify
+
+set -euo pipefail
+
+# Standard pre-push protocol: git pipes "<local_ref> <local_sha> <remote_ref> <remote_sha>"
+# lines on stdin, one per ref being pushed. Skip the hook when every ref is a tag
+# (refs/tags/...) since tag pushes don't introduce new commits to test.
+all_tags=1
+any_refs=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+    any_refs=1
+    case "$remote_ref" in
+        refs/tags/*) ;;
+        *) all_tags=0 ;;
+    esac
+done
+
+if [ "$any_refs" -eq 1 ] && [ "$all_tags" -eq 1 ]; then
+    echo "pre-push: tag-only push detected, skipping CI checks."
+    exit 0
+fi
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+echo "pre-push: running 'make -C langchain_agent ci' before pushing..."
+if ! make -C "$REPO_ROOT/langchain_agent" ci; then
+    echo ""
+    echo "Pre-push checks failed. Fix the failures or use \`git push --no-verify\` to bypass (not recommended)."
+    exit 1
+fi
+
+echo "pre-push: all checks passed."
+exit 0

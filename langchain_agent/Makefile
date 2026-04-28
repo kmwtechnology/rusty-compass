@@ -1,4 +1,4 @@
-.PHONY: help setup test lint format clean run stop test-reranker test-hybrid test-query dev dev-api dev-web install-web
+.PHONY: help setup test lint format clean run stop test-reranker test-hybrid test-query dev dev-api dev-web install-web ci install-hooks
 
 help:
 	@echo "Rusty Compass - Development Commands"
@@ -8,10 +8,14 @@ help:
 	@echo "  make install-web        - Install web UI dependencies (npm install)"
 	@echo ""
 	@echo "Testing:"
+	@echo "  make ci                 - Run the same checks GitHub Actions runs (config_builder + unit tests)"
 	@echo "  make test               - Run all test suites"
 	@echo "  make test-reranker      - Run reranker tests only"
 	@echo "  make test-hybrid        - Run hybrid search tests only"
 	@echo "  make test-query         - Run query evaluator tests only"
+	@echo ""
+	@echo "Local CI Hooks:"
+	@echo "  make install-hooks      - Install git pre-push hook that runs 'make ci'"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  make lint               - Run code quality checks (pylint)"
@@ -33,6 +37,26 @@ help:
 setup:
 	@echo "[1/1] Running complete setup..."
 	python3 setup.py
+
+# CI mirror: runs the exact same pytest invocations as .github/workflows/test.yml.
+# Uses the project's .venv python so behavior matches developer environments.
+ci:
+	@echo "[1/2] Running Config Builder tests (matches GitHub Actions)..."
+	PYTHONPATH=. .venv/bin/python -m pytest tests/config_builder/ -v -k "not live" --tb=short --timeout=30
+	@echo ""
+	@echo "[2/2] Running Unit tests (matches GitHub Actions)..."
+	PYTHONPATH=. .venv/bin/python -m pytest tests/unit/ -v --tb=short --timeout=30
+	@echo ""
+	@echo "All CI checks passed."
+
+# Install the tracked pre-push hook into this clone's .git/hooks/.
+# The .git directory is per-clone, so contributors must run this after cloning.
+install-hooks:
+	@echo "Installing git hooks..."
+	@if [ ! -d ../.git ]; then echo "Error: ../.git not found. Run from langchain_agent/ at the repo root."; exit 1; fi
+	cp scripts/git-hooks/pre-push ../.git/hooks/pre-push
+	chmod +x ../.git/hooks/pre-push
+	@echo "Installed: ../.git/hooks/pre-push"
 
 test:
 	@echo "[1/3] Running reranker tests..."
