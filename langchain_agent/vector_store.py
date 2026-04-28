@@ -266,7 +266,8 @@ class OpenSearchVectorStore:
             }
 
             response = self.client.search(index=self.index_name, body=body)
-            return [self._hit_to_document(hit) for hit in response["hits"]["hits"]]
+            documents = [self._hit_to_document(hit) for hit in response["hits"]["hits"]]
+            return self._filter_and_validate_documents(documents)
 
         except Exception as e:
             logger.error(f"Error during similarity search: {e}")
@@ -373,7 +374,8 @@ class OpenSearchVectorStore:
         # Use search_pipeline parameter to apply normalization
         params = {"search_pipeline": self.search_pipeline}
         response = self.client.search(index=self.index_name, body=body, params=params)
-        return [self._hit_to_document(hit) for hit in response["hits"]["hits"]]
+        documents = [self._hit_to_document(hit) for hit in response["hits"]["hits"]]
+        return self._filter_and_validate_documents(documents)
 
     def _hybrid_search_rrf(
         self,
@@ -435,7 +437,8 @@ class OpenSearchVectorStore:
             scored.append((rrf_score, hit))
 
         scored.sort(key=lambda x: x[0], reverse=True)
-        return [self._hit_to_document(hit) for _, hit in scored[:k]]
+        documents = [self._hit_to_document(hit) for _, hit in scored[:k]]
+        return self._filter_and_validate_documents(documents)
 
     def _text_search(self, query: str, k: int = 4) -> List[Document]:
         """Pure BM25 text search for alpha=0.0."""
@@ -452,7 +455,8 @@ class OpenSearchVectorStore:
             }
 
             response = self.client.search(index=self.index_name, body=body)
-            return [self._hit_to_document(hit) for hit in response["hits"]["hits"]]
+            documents = [self._hit_to_document(hit) for hit in response["hits"]["hits"]]
+            return self._filter_and_validate_documents(documents)
 
         except Exception as e:
             logger.error(f"Error during text search: {e}")
@@ -628,6 +632,44 @@ class OpenSearchVectorStore:
         if "catalog_type" in src:
             metadata["catalog_type"] = src["catalog_type"]
         return Document(page_content=src.get("chunk_text", ""), metadata=metadata)
+
+    def _filter_and_validate_documents(self, documents: List[Document]) -> List[Document]:
+        """
+        Filter and validate documents for data quality issues.
+
+        Removes documents with None page_content and logs warnings.
+        This prevents downstream errors when processing document content.
+
+        Args:
+            documents: List of documents to validate
+
+        Returns:
+            Filtered list of valid documents
+        """
+        if not documents:
+            return documents
+
+        valid_docs = []
+        invalid_count = 0
+
+        for doc in documents:
+            if doc.page_content is None:
+                invalid_count += 1
+                source = doc.metadata.get("source", "unknown")
+                logger.warning(
+                    f"Document with None page_content filtered out",
+                    extra={"source": source, "metadata": doc.metadata}
+                )
+            else:
+                valid_docs.append(doc)
+
+        if invalid_count > 0:
+            logger.warning(
+                f"Filtered {invalid_count} documents with None page_content "
+                f"from {len(documents)} total results"
+            )
+
+        return valid_docs
 
 
 class OpenSearchRetriever:
