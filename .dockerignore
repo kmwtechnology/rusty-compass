@@ -1,0 +1,59 @@
+# Build context is repo root (per langchain_agent/Dockerfile).
+# Everything excluded here is invisible to all build stages.
+
+# VCS
+.git/
+.gitignore
+.github/
+
+# Editor/Claude/IDE state
+.vscode/
+.idea/
+.claude/
+
+# Python build/runtime junk
+**/__pycache__/
+**/*.pyc
+**/.venv/
+**/venv/
+**/.pytest_cache/
+**/.coverage
+**/.mypy_cache/
+**/.ruff_cache/
+
+# Node / frontend
+**/node_modules/
+langchain_agent/web/dist/
+langchain_agent/web/.env
+langchain_agent/web/.env.*
+
+# Lucille build artifacts — we rebuild from source in the lucille-builder
+# stage. Including these would double image size and risk the dedup-vs-stale
+# situation we just fought (jackson-2.17 alongside 2.19).
+lucille/**/target/
+lucille/**/*.class
+
+# Lucille docs not needed for the validator. Examples must remain visible
+# to Maven because the parent POM declares them as reactor child modules
+# (their target/ is still excluded above, so size impact is minimal — only
+# pom.xml + a handful of small Java files).
+lucille/doc/
+
+# Local logs and runtime artifacts
+**/logs/
+**/log/
+**/.backend.pid
+**/.frontend.pid
+**/.env
+**/.env.*
+!langchain_agent/.env.example
+
+# Tests are not needed in the runtime image; they are run in CI separately.
+langchain_agent/tests/
+
+# Scripts not needed at runtime
+langchain_agent/scripts/
+
+# OS junk
+.DS_Store
+Thumbs.db

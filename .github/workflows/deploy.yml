@@ -11,6 +11,8 @@ on:
     branches: [main]
     paths:
       - 'langchain_agent/**'
+      - 'lucille/**'
+      - '.dockerignore'
       - '.github/workflows/deploy.yml'
       - '.github/workflows/test.yml'
 
@@ -74,11 +76,20 @@ jobs:
         run: |
           gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
+      - name: Set up Docker Buildx
+        # Required for the multi-stage build's `--mount=type=cache` directive
+        # in the lucille-builder stage (Maven dependency cache).
+        uses: docker/setup-buildx-action@v3
+
       - name: Build Docker image
+        # Build context is the repo ROOT (not langchain_agent/) so the
+        # Dockerfile can COPY both langchain_agent/ and lucille/ for the
+        # multi-stage Java build.
         run: |
-          cd langchain_agent
-          docker build \
+          docker buildx build \
             --platform=linux/amd64 \
+            --load \
+            -f langchain_agent/Dockerfile \
             -t "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:${{ github.sha }}" \
             -t "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.SERVICE_NAME }}:latest" \
             .
@@ -111,15 +122,15 @@ jobs:
             --region=${{ env.REGION }} \
             --platform=managed \
             --allow-unauthenticated \
-            --memory=512Mi \
-            --cpu=1 \
+            --memory=2Gi \
+            --cpu=2 \
             --min-instances=0 \
             --max-instances=2 \
             --concurrency=80 \
             --cpu-throttling \
             --timeout=3600 \
             --add-cloudsql-instances="${{ env.PROJECT_ID }}:${{ env.REGION }}:rusty-compass-db" \
-            --set-env-vars="POSTGRES_HOST=/cloudsql/${{ env.PROJECT_ID }}:${{ env.REGION }}:rusty-compass-db,POSTGRES_USER=postgres,POSTGRES_DB=langchain_agent,LLM_MODEL=gemini-2.5-flash,EMBEDDINGS_MODEL=models/gemini-embedding-001,RERANKER_MODEL=gemini-2.5-flash-lite,QUERY_EVAL_MODEL=gemini-2.5-flash-lite,VECTOR_DIMENSION=768,LOG_FORMAT=json,LOG_LEVEL=INFO,ENABLE_RERANKING=true,ENABLE_QUERY_EVALUATION=true,ENABLE_CONFIG_BUILDER=true,ENABLE_DOC_WRITER=true,ENABLE_CONTENT_TYPE_CLASSIFICATION=true,OPENSEARCH_HOST=34.138.97.13,OPENSEARCH_PORT=9200,OPENSEARCH_USE_SSL=true,OPENSEARCH_VERIFY_CERTS=false,OPENSEARCH_INDEX_NAME=rusty_compass_docs" \
+            --set-env-vars="POSTGRES_HOST=/cloudsql/${{ env.PROJECT_ID }}:${{ env.REGION }}:rusty-compass-db,POSTGRES_USER=postgres,POSTGRES_DB=langchain_agent,LLM_MODEL=gemini-2.5-flash,EMBEDDINGS_MODEL=models/gemini-embedding-001,RERANKER_MODEL=gemini-2.5-flash-lite,QUERY_EVAL_MODEL=gemini-2.5-flash-lite,VECTOR_DIMENSION=768,LOG_FORMAT=json,LOG_LEVEL=INFO,ENABLE_RERANKING=true,ENABLE_QUERY_EVALUATION=true,ENABLE_CONFIG_BUILDER=true,ENABLE_DOC_WRITER=true,ENABLE_CONTENT_TYPE_CLASSIFICATION=true,LUCILLE_PROJECT_DIR=/app/lucille,OPENSEARCH_HOST=34.138.97.13,OPENSEARCH_PORT=9200,OPENSEARCH_USE_SSL=true,OPENSEARCH_VERIFY_CERTS=false,OPENSEARCH_INDEX_NAME=rusty_compass_docs" \
             --set-secrets="GOOGLE_API_KEY=rusty-compass-google-api-key:latest,API_KEY=rusty-compass-api-key:latest,POSTGRES_PASSWORD=rusty-compass-db-password:latest,OPENSEARCH_USER=rusty-compass-opensearch-user:latest,OPENSEARCH_PASSWORD=rusty-compass-opensearch-password:latest" \
             --quiet
 
