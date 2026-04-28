@@ -178,7 +178,7 @@ def doc_gatherer_node(state: CustomAgentState, agent) -> Dict[str, Any]:
             )
             for doc in results:
                 section_data["search_results"].append({
-                    "content": doc.page_content[:800],
+                    "content": (doc.page_content or "")[:800],
                     "source": doc.metadata.get("source", ""),
                     "title": doc.metadata.get("title", ""),
                 })

@@ -526,7 +526,7 @@ JSON only:"""
                 "type": comp["type"],
                 "spec": None,
                 "resolved": False,
-                "search_context": search_results[0].page_content[:500],
+                "search_context": search_results[0].page_content[:500] if search_results[0].page_content else "",
             })
         else:
             not_found.append(name)
