@@ -1377,7 +1377,7 @@ Your tutorial steps:"""
         # Format context
         context_parts = []
         for i, doc in enumerate(unique_docs[:15], 1):
-            content = doc.page_content[:400]
+            content = (doc.page_content or "")[:400]
             source = doc.metadata.get("source", "Unknown")
             context_parts.append(f"[{i}] {content}\n(Source: {source})")
 
